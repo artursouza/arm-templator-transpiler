@@ -2,7 +2,7 @@ import { Dictionary } from 'lodash';
 import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst } from './ast';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { ArmLangVisitor } from './antlr4/ArmLangVisitor';
-import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext } from './antlr4/ArmLangParser';
+import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext } from './antlr4/ArmLangParser';
 
 export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisitor<Ast> {
   defaultResult(): number {
@@ -42,7 +42,7 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
 
   visitInputDecl(ctx: InputDeclContext) {
     const name = new IdentifierAst(ctx.getChild(1).text);
-    const type = new TypeAst(ctx.getChild(2).text);
+    const type = this.visit(ctx.getChild(2)) as TypeAst;
 
     return new InputDeclAst(name, type);
   }
@@ -60,6 +60,10 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
     const object = this.visit(ctx.getChild(3)) as ObjectAst;
 
     return new ResourceAst(name, type, object);
+  }
+
+  visitType(ctx: TypeContext) {
+    return new TypeAst(ctx.text);
   }
 
   visitObject(ctx: ObjectContext) {

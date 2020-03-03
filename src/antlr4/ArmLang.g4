@@ -11,7 +11,7 @@ section
     ;
 
 inputDecl
-    : 'input' Identifier Type
+    : 'input' Identifier type
     ;
 
 outputDecl
@@ -54,7 +54,7 @@ String
     : '\'' StringChar* '\''
     ;
 
-Type
+type
     : 'string'
     | 'securestring'
     | 'int'
