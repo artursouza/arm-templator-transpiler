@@ -1,3 +1,7 @@
+resource subnet test {
+    name: 'mySubnet'
+}
+
 resource networkInterface nic {
     name: 'myNic'
     properties: {
@@ -5,7 +9,7 @@ resource networkInterface nic {
             name: 'myConfig'
             properties: {
                 subnet: {
-                    id: subnetResourceId
+                    id: resourceId(test)
                 }
                 privateIPAllocationMethod: 'Dynamic'
             }

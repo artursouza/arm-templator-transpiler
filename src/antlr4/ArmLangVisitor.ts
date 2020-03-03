@@ -9,6 +9,7 @@ import { ResourceContext } from "./ArmLangParser";
 import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
 import { ArrayContext } from "./ArmLangParser";
+import { FunctionCallContext } from "./ArmLangParser";
 import { PropertyContext } from "./ArmLangParser";
 
 
@@ -61,6 +62,13 @@ export interface ArmLangVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitArray?: (ctx: ArrayContext) => Result;
+
+	/**
+	 * Visit a parse tree produced by `ArmLangParser.functionCall`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitFunctionCall?: (ctx: FunctionCallContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by `ArmLangParser.property`.

@@ -24,6 +24,11 @@ array
     : '[' property* ']'
     ;
 
+functionCall
+    : Identifier '(' ')'
+    | Identifier '(' property (',' property)* ')'
+    ;
+
 Identifier
     : NonDigit
         (   NonDigit
@@ -47,6 +52,7 @@ property
     | Identifier
     | object
     | array
+    | functionCall
     ;
 
 fragment NonDigit
@@ -71,5 +77,5 @@ fragment StringChar
     ;
 
 WS
-    : [ \t\n\r] + -> skip
+    : [ \t\r\n\u000C]+ -> channel(HIDDEN)
     ;

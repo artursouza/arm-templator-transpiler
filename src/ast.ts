@@ -2,6 +2,14 @@ export abstract class Ast {
 
 }
 
+export class ProgramAst extends Ast {
+  resources: ResourceAst[];
+  constructor(resources: ResourceAst[]) {
+    super();
+    this.resources = resources;
+  }
+}
+
 export class ResourceAst extends Ast {
   name: IdentifierAst;
   type: IdentifierAst;
@@ -47,10 +55,20 @@ export class ArrayAst extends Ast {
 }
 
 export class ObjectAst extends Ast {
-  value: ObjectPropertyAst[];
-  constructor(value: ObjectPropertyAst[]) {
+  properties: ObjectPropertyAst[];
+  constructor(properties: ObjectPropertyAst[]) {
     super();
-    this.value = value;
+    this.properties = properties;
+  }
+}
+
+export class FunctionCallAst extends Ast {
+  name: IdentifierAst;
+  params: Ast[];
+  constructor(name: IdentifierAst, params: Ast[]) {
+    super();
+    this.name = name;
+    this.params = params;
   }
 }
 
