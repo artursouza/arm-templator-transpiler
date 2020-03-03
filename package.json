@@ -1,0 +1,37 @@
+{
+  "name": "arm-templator-transpiler",
+  "version": "1.0.0",
+  "description": "ARM Typescript template generator transpiler",
+  "main": "index",
+  "scripts": {
+    "antlr": "antlr4ts -visitor ./src/antlr4/ArmLang.g4",
+    "start": "ts-node ./src/armlang.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/anthony-c-martin/arm-templator-transpiler/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/anthony-c-martin/arm-templator-transpiler.git"
+  },
+  "keywords": [
+    "azure",
+    "arm",
+    "arm template",
+    "azure resource manager"
+  ],
+  "author": "Anthony Martin <anthony.ct.martin@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "antlr4ts": "^0.5.0-alpha.3"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.149",
+    "@types/node": "^13.7.7",
+    "antlr4ts-cli": "^0.5.0-alpha.3",
+    "lodash": "^4.17.15",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.3"
+  }
+}

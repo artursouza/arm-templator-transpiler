@@ -1,0 +1,20 @@
+resource networkInterface nic {
+    name: 'myNic'
+    properties: {
+        ipConfigurations: {
+            name: 'myConfig'
+            properties: {
+                subnet: {
+                    id: subnetResourceId
+                }
+                privateIPAllocationMethod: 'Dynamic'
+            }
+        }
+    }
+}
+
+resource publicIpAddress pip {
+    name: 'myPip'
+    properties: {
+    }
+}
