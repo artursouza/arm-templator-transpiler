@@ -6,6 +6,16 @@ program
 
 section
     : resource
+    | inputDecl
+    | outputDecl
+    ;
+
+inputDecl
+    : 'input' Identifier Type
+    ;
+
+outputDecl
+    : 'output' Identifier property
     ;
 
 resource
@@ -42,6 +52,15 @@ Number
 
 String
     : '\'' StringChar* '\''
+    ;
+
+Type
+    : 'string'
+    | 'securestring'
+    | 'int'
+    | 'bool'
+    | 'object'
+    | 'array'
     ;
 
 property

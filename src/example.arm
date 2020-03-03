@@ -1,9 +1,11 @@
+input namePrefix string
+
 resource subnet test {
-    name: 'mySubnet'
+    name: concat(namePrefix, '-subnet')
 }
 
 resource networkInterface nic {
-    name: 'myNic'
+    name: concat(namePrefix, '-nic')
     properties: {
         ipConfigurations: {
             name: 'myConfig'
@@ -18,7 +20,9 @@ resource networkInterface nic {
 }
 
 resource publicIpAddress pip {
-    name: 'myPip'
+    name: concat(namePrefix, '-pip')
     properties: {
     }
 }
+
+output nicResourceId resourceId(nic)

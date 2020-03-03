@@ -5,6 +5,8 @@ import { ParseTreeVisitor } from "antlr4ts/tree/ParseTreeVisitor";
 
 import { ProgramContext } from "./ArmLangParser";
 import { SectionContext } from "./ArmLangParser";
+import { InputDeclContext } from "./ArmLangParser";
+import { OutputDeclContext } from "./ArmLangParser";
 import { ResourceContext } from "./ArmLangParser";
 import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
@@ -34,6 +36,20 @@ export interface ArmLangVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitSection?: (ctx: SectionContext) => Result;
+
+	/**
+	 * Visit a parse tree produced by `ArmLangParser.inputDecl`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitInputDecl?: (ctx: InputDeclContext) => Result;
+
+	/**
+	 * Visit a parse tree produced by `ArmLangParser.outputDecl`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitOutputDecl?: (ctx: OutputDeclContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by `ArmLangParser.resource`.

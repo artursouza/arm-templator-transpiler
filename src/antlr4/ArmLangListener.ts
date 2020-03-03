@@ -5,6 +5,8 @@ import { ParseTreeListener } from "antlr4ts/tree/ParseTreeListener";
 
 import { ProgramContext } from "./ArmLangParser";
 import { SectionContext } from "./ArmLangParser";
+import { InputDeclContext } from "./ArmLangParser";
+import { OutputDeclContext } from "./ArmLangParser";
 import { ResourceContext } from "./ArmLangParser";
 import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
@@ -39,6 +41,28 @@ export interface ArmLangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitSection?: (ctx: SectionContext) => void;
+
+	/**
+	 * Enter a parse tree produced by `ArmLangParser.inputDecl`.
+	 * @param ctx the parse tree
+	 */
+	enterInputDecl?: (ctx: InputDeclContext) => void;
+	/**
+	 * Exit a parse tree produced by `ArmLangParser.inputDecl`.
+	 * @param ctx the parse tree
+	 */
+	exitInputDecl?: (ctx: InputDeclContext) => void;
+
+	/**
+	 * Enter a parse tree produced by `ArmLangParser.outputDecl`.
+	 * @param ctx the parse tree
+	 */
+	enterOutputDecl?: (ctx: OutputDeclContext) => void;
+	/**
+	 * Exit a parse tree produced by `ArmLangParser.outputDecl`.
+	 * @param ctx the parse tree
+	 */
+	exitOutputDecl?: (ctx: OutputDeclContext) => void;
 
 	/**
 	 * Enter a parse tree produced by `ArmLangParser.resource`.

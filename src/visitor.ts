@@ -1,37 +1,57 @@
 import { Dictionary } from 'lodash';
-import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast } from './ast';
+import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst } from './ast';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { ArmLangVisitor } from './antlr4/ArmLangVisitor';
-import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext } from './antlr4/ArmLangParser';
-
-export class ArmVisitorContext {
-  resources: Dictionary<ResourceAst> = {};
-}
+import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext } from './antlr4/ArmLangParser';
 
 export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisitor<Ast> {
-  private context: ArmVisitorContext = new ArmVisitorContext();
-
   defaultResult(): number {
     return 0
   }
 
   visitProgram(ctx: ProgramContext) {
+    const inputs = [];
     const resources = [];
+    const outputs = [];
 
     for (const child of ctx.children || []) {
-      const resource = this.visit(child) as ResourceAst;
-      if (this.context.resources[resource.name.name]) {
-        throw new Error(`Duplicate identifier '${resource.name.name}`);
+      const section = this.visit(child);
+
+      if (section instanceof InputDeclAst) {
+        inputs.push(section);
+        continue;
       }
 
-      resources.push(resource);
+      if (section instanceof ResourceAst) {
+        resources.push(section);
+        continue;
+      }
+
+      if (section instanceof OutputDeclAst) {
+        outputs.push(section);
+        continue;
+      }
     }
 
-    return new ProgramAst(resources);
+    return new ProgramAst(inputs, resources, outputs);
   }
   
   visitSection(ctx: SectionContext) {
     return this.visit(ctx.getChild(0));
+  }
+
+  visitInputDecl(ctx: InputDeclContext) {
+    const name = new IdentifierAst(ctx.getChild(1).text);
+    const type = new TypeAst(ctx.getChild(2).text);
+
+    return new InputDeclAst(name, type);
+  }
+
+  visitOutputDecl(ctx: OutputDeclContext) {
+    const name = new IdentifierAst(ctx.getChild(1).text);
+    const value = this.visit(ctx.getChild(2));
+
+    return new OutputDeclAst(name, value);
   }
   
   visitResource(ctx: ResourceContext) {

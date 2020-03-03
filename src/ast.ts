@@ -3,10 +3,14 @@ export abstract class Ast {
 }
 
 export class ProgramAst extends Ast {
+  inputs: InputDeclAst[]
   resources: ResourceAst[];
-  constructor(resources: ResourceAst[]) {
+  outputs: OutputDeclAst[]
+  constructor(inputs: InputDeclAst[], resources: ResourceAst[], outputs: OutputDeclAst[]) {
     super();
+    this.inputs = inputs;
     this.resources = resources;
+    this.outputs = outputs;
   }
 }
 
@@ -27,6 +31,34 @@ export class IdentifierAst extends Ast {
   constructor(name: string) {
     super();
     this.name = name;
+  }
+}
+
+export class TypeAst extends Ast {
+  name: string;
+  constructor(name: string) {
+    super();
+    this.name = name;
+  }
+}
+
+export class InputDeclAst extends Ast {
+  name: IdentifierAst;
+  type: TypeAst;
+  constructor(name: IdentifierAst, type: TypeAst) {
+    super();
+    this.name = name;
+    this.type = type;
+  }
+}
+
+export class OutputDeclAst extends Ast {
+  name: IdentifierAst;
+  value: Ast;
+  constructor(name: IdentifierAst, value: Ast) {
+    super();
+    this.name = name;
+    this.value = value;
   }
 }
 
