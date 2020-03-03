@@ -1,10 +1,10 @@
 input namePrefix string
 
-resource subnet test {
+resource azrm 'network/virtualNetworks/subnets@2019-11-01' test {
     name: concat(namePrefix, '-subnet')
 }
 
-resource networkInterface nic {
+resource azrm 'network/networkInterfaces@v2019-11-01' nic {
     name: concat(namePrefix, '-nic')
     properties: {
         ipConfigurations: {
@@ -19,7 +19,7 @@ resource networkInterface nic {
     }
 }
 
-resource publicIpAddress pip {
+resource azrm 'network/publicIpAddresses@2019-11-01' pip {
     name: concat(namePrefix, '-pip')
     properties: {
     }

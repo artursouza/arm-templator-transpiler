@@ -14,6 +14,6 @@ const parser = new ArmLangParser(tokens);
 const tree = parser.program();
 
 const visitor = new ArmVisitor();
-//const program = tree.accept(visitor) as ProgramAst;
+const program = tree.accept(visitor) as ProgramAst;
 
-//printProgram(program);
+printProgram(program);

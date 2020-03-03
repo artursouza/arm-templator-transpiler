@@ -15,13 +15,15 @@ export class ProgramAst extends Ast {
 }
 
 export class ResourceAst extends Ast {
+  provider: IdentifierAst;
+  type: StringAst;
   name: IdentifierAst;
-  type: IdentifierAst;
   properties: ObjectAst;
-  constructor(name: IdentifierAst, type: IdentifierAst, properties: ObjectAst) {
+  constructor(provider: IdentifierAst, type: StringAst, name: IdentifierAst, properties: ObjectAst) {
     super();
-    this.name = name;
+    this.provider = provider;
     this.type = type;
+    this.name = name;
     this.properties = properties;
   }
 }

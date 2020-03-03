@@ -55,11 +55,12 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
   }
   
   visitResource(ctx: ResourceContext) {
-    const name = new IdentifierAst(ctx.getChild(1).text);
-    const type = new IdentifierAst(ctx.getChild(2).text);
-    const object = this.visit(ctx.getChild(3)) as ObjectAst;
+    const provider = new IdentifierAst(ctx.getChild(1).text);
+    const type = new StringAst(ctx.getChild(2).text);
+    const name = new IdentifierAst(ctx.getChild(3).text);
+    const object = this.visit(ctx.getChild(4)) as ObjectAst;
 
-    return new ResourceAst(name, type, object);
+    return new ResourceAst(provider, type, name, object);
   }
 
   visitType(ctx: TypeContext) {

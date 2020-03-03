@@ -19,7 +19,7 @@ outputDecl
     ;
 
 resource
-    : 'resource' Identifier Identifier object
+    : 'resource' Identifier String Identifier object
     ;
 
 object
