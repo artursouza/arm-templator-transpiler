@@ -23,6 +23,7 @@ class CallProperty extends Property {
 
 interface ResourceDef {
   properties: any;
+  apiVersion: string;
   type: string;
 }
 
@@ -35,6 +36,12 @@ interface ParamDef {
   type: string;
 }
 
+const providerLookup: Dictionary<string> = {
+  network: 'Microsoft.Network',
+  compute: 'Microsoft.Compute',
+  storage: 'Microsoft.Storage',
+}
+
 export class TemplateDeployer implements Deployer {
   private params: Dictionary<ParamDef> = {};
   private outputs: Dictionary<OutputDef> = {};
@@ -45,11 +52,33 @@ export class TemplateDeployer implements Deployer {
       type,
     };
   }
+
+  parseType(type: string) {
+    let provider = type.split('/')[0];
+    if (providerLookup[provider]) {
+      provider = providerLookup[provider];
+    }
+
+    let apiVersion = type.split('@')[1];
+    let fullType = `${provider}/${type.split('/')[1].split('@')[0]}`
+
+    return {
+      apiVersion,
+      fullType,
+    };
+  }
   
   resource(provider: string, type: string, name: string, properties: any): void {
+    if (provider !== 'azrm') {
+      throw new Error(`Unable to deploy resource from provider '${provider}'`);
+    }
+
+    const { apiVersion, fullType } = this.parseType(type);
+
     this.resources[name] = {
       properties,
-      type,
+      apiVersion,
+      type: fullType,
     };
   }
 
@@ -75,7 +104,13 @@ export class TemplateDeployer implements Deployer {
   renderResources(): any[] {
     const outputs = [];
     for (const key of Object.keys(this.resources)) {
-      outputs.push(this.renderObject(this.resources[key].properties));
+      const resource = {
+        apiVersion: this.resources[key].apiVersion,
+        type: this.resources[key].type,
+        ...this.renderObject(this.resources[key].properties)
+      };
+
+      outputs.push(resource);
     }
 
     return outputs;
@@ -106,7 +141,7 @@ export class TemplateDeployer implements Deployer {
       switch (input.name) {
         case 'resourceId':
           const resource = this.resources[(input.params[0] as IdentifierProperty).name];
-          return `resourceId('${resource.type}')`;
+          return `resourceId('${resource.type}', ${this.renderProperty(resource.properties.name)})`;
         case 'concat':
           return `concat(${input.params.map(p => typeof p === 'string' ? `'${p}'` : this.renderProperty(p)).join(', ')})`;
       }
