@@ -6,7 +6,7 @@
   "scripts": {
     "antlr": "antlr4ts -visitor ./src/antlr4/ArmLang.g4",
     "start": "ts-node ./src/armlang.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -r ts-node/register tests/run.ts"
   },
   "bugs": {
     "url": "https://github.com/anthony-c-martin/arm-templator-transpiler/issues"
@@ -27,10 +27,14 @@
     "antlr4ts": "^0.5.0-alpha.3"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.10",
     "@types/lodash": "^4.14.149",
+    "@types/mocha": "^7.0.2",
     "@types/node": "^13.7.7",
     "antlr4ts-cli": "^0.5.0-alpha.3",
+    "chai": "^4.2.0",
     "lodash": "^4.17.15",
+    "mocha": "^7.1.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.3"
   }

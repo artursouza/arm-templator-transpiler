@@ -1,4 +1,3 @@
-import { Dictionary } from 'lodash';
 import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst } from './ast';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { ArmLangVisitor } from './antlr4/ArmLangVisitor';
@@ -125,4 +124,10 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
 
     return new FunctionCallAst(name, params);
   }
+}
+
+export function visit(context: ProgramContext) {
+  const visitor = new ArmVisitor();
+
+  return context.accept(visitor) as ProgramAst;
 }
