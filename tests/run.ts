@@ -9,8 +9,8 @@ function executeTest(input: string, output: string) {
   input = path.resolve(__dirname, input);
   output = path.resolve(__dirname, output);
 
-  const inputData = fs.readFileSync(input, { encoding: 'utf8' });
-  const outputData = fs.readFileSync(output, { encoding: 'utf8' });
+  const inputData = fs.readFileSync(input, { encoding: 'utf8' }).replace(/\r/g, '');
+  const outputData = fs.readFileSync(output, { encoding: 'utf8' }).replace(/\r/g, '');
   
   const generated = inspect(buildAst(inputData), false, 999);
   //fs.writeFileSync(output, generated, {encoding:'utf8'});
