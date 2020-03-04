@@ -12,7 +12,6 @@ import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
 import { ArrayContext } from "./ArmLangParser";
 import { FunctionCallContext } from "./ArmLangParser";
-import { PropertyAccessContext } from "./ArmLangParser";
 import { TypeContext } from "./ArmLangParser";
 import { PropertyContext } from "./ArmLangParser";
 
@@ -87,13 +86,6 @@ export interface ArmLangVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitFunctionCall?: (ctx: FunctionCallContext) => Result;
-
-	/**
-	 * Visit a parse tree produced by `ArmLangParser.propertyAccess`.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	visitPropertyAccess?: (ctx: PropertyAccessContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by `ArmLangParser.type`.

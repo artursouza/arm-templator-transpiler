@@ -12,7 +12,6 @@ import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
 import { ArrayContext } from "./ArmLangParser";
 import { FunctionCallContext } from "./ArmLangParser";
-import { PropertyAccessContext } from "./ArmLangParser";
 import { TypeContext } from "./ArmLangParser";
 import { PropertyContext } from "./ArmLangParser";
 
@@ -120,17 +119,6 @@ export interface ArmLangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitFunctionCall?: (ctx: FunctionCallContext) => void;
-
-	/**
-	 * Enter a parse tree produced by `ArmLangParser.propertyAccess`.
-	 * @param ctx the parse tree
-	 */
-	enterPropertyAccess?: (ctx: PropertyAccessContext) => void;
-	/**
-	 * Exit a parse tree produced by `ArmLangParser.propertyAccess`.
-	 * @param ctx the parse tree
-	 */
-	exitPropertyAccess?: (ctx: PropertyAccessContext) => void;
 
 	/**
 	 * Enter a parse tree produced by `ArmLangParser.type`.

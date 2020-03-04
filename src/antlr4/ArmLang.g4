@@ -39,11 +39,6 @@ functionCall
     | Identifier '(' property (',' property)* ')'
     ;
 
-propertyAccess
-    : Identifier '.' Identifier
-    | Identifier '[' Number ']'
-    ;
-
 Identifier
     : NonDigit
         (   NonDigit
@@ -77,7 +72,6 @@ property
     | object
     | array
     | functionCall
-    | propertyAccess
     ;
 
 fragment NonDigit
@@ -101,6 +95,14 @@ fragment StringChar
     | StringEscapeSequence
     ;
 
-WS
+BlockComment
+    : '/*' .*? '*/' -> channel(HIDDEN)
+    ;
+
+LineComment
+    : '//' ~[\r\n]* -> channel(HIDDEN)
+    ;
+
+Whitespace
     : [ \t\r\n\u000C]+ -> channel(HIDDEN)
     ;

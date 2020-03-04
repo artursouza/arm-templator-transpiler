@@ -4,7 +4,7 @@ resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
     name: concat(namePrefix, '-subnet')
 }
 
-resource azrm 'network/networkInterfaces@v2019-11-01' myNic {
+resource azrm 'network/networkInterfaces@2019-11-01' myNic {
     name: concat(namePrefix, '-nic')
     properties: {
         ipConfigurations: {
@@ -19,6 +19,16 @@ resource azrm 'network/networkInterfaces@v2019-11-01' myNic {
     }
 }
 
+
+/* this block comment should be ignored
+resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
+    name: concat(namePrefix, '-pip')
+    properties: {
+    }
+}
+*/
+
+// this comment should be ignored
 resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
     name: concat(namePrefix, '-pip')
     properties: {
