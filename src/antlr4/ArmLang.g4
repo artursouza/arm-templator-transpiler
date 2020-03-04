@@ -39,6 +39,11 @@ functionCall
     | Identifier '(' property (',' property)* ')'
     ;
 
+propertyAccess
+    : Identifier '.' Identifier
+    | Identifier '[' Number ']'
+    ;
+
 Identifier
     : NonDigit
         (   NonDigit
@@ -72,6 +77,7 @@ property
     | object
     | array
     | functionCall
+    | propertyAccess
     ;
 
 fragment NonDigit

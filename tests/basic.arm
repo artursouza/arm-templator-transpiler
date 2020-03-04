@@ -1,17 +1,17 @@
 input namePrefix string
 
-resource azrm 'network/virtualNetworks/subnets@2019-11-01' test {
+resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
     name: concat(namePrefix, '-subnet')
 }
 
-resource azrm 'network/networkInterfaces@v2019-11-01' nic {
+resource azrm 'network/networkInterfaces@v2019-11-01' myNic {
     name: concat(namePrefix, '-nic')
     properties: {
         ipConfigurations: {
             name: 'myConfig'
             properties: {
                 subnet: {
-                    id: resourceId(test)
+                    id: resourceId(mySubnet)
                 }
                 privateIPAllocationMethod: 'Dynamic'
             }
@@ -19,7 +19,7 @@ resource azrm 'network/networkInterfaces@v2019-11-01' nic {
     }
 }
 
-resource azrm 'network/publicIpAddresses@2019-11-01' pip {
+resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
     name: concat(namePrefix, '-pip')
     properties: {
     }
