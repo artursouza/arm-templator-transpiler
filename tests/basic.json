@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "namePrefix": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "name": "[concat([params('namePrefix')], -subnet)]",
+      "properties": {}
+    },
+    {
+      "name": "[concat([params('namePrefix')], -nic)]",
+      "properties": {
+        "ipConfigurations": {
+          "name": "myConfig",
+          "properties": {
+            "subnet": {
+              "id": "[resourceId('network/virtualNetworks/subnets@2019-11-01')]"
+            },
+            "privateIPAllocationMethod": "Dynamic"
+          }
+        }
+      }
+    },
+    {
+      "name": "[concat([params('namePrefix')], -pip)]",
+      "properties": {}
+    }
+  ],
+  "outputs": {
+    "nicResourceId": {
+      "type": "string",
+      "value": "[resourceId('network/networkInterfaces@2019-11-01')]"
+    }
+  }
+}

@@ -47,7 +47,13 @@ function renderProperty(property: Ast): any {
   throw new Error(`Encountered unexpected ${typeof property}`);
 }
 
-export function printProgram(program: ProgramAst, stream: string[]) {
+export function printJsModule(program: ProgramAst) {
+  const stream: string[] = [];
+
+  stream.push(`"use strict";`);
+  stream.push(`Object.defineProperty(exports, "__esModule", { value: true });`);
+  stream.push(`function render(d) {`);
+
   for (const input of program.inputs) {
     stream.push(`d.input('${input.name.name}', '${input.type.name}');`);
   }
@@ -59,4 +65,11 @@ export function printProgram(program: ProgramAst, stream: string[]) {
   for (const output of program.outputs) {
     stream.push(`d.output('${output.name.name}', ${renderProperty(output.value)});`);
   }
+
+  stream.push(`return d.render();`);
+  stream.push(`}`);
+
+  stream.push(`exports.render = render`);
+
+  return stream.join('\n');
 }

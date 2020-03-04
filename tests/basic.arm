@@ -2,6 +2,8 @@ input namePrefix string
 
 resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
     name: concat(namePrefix, '-subnet')
+    properties: {
+    }
 }
 
 resource azrm 'network/networkInterfaces@2019-11-01' myNic {
@@ -35,4 +37,4 @@ resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
     }
 }
 
-output nicResourceId resourceId(nic)
+output nicResourceId resourceId(myNic)

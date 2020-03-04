@@ -3,10 +3,10 @@ import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import { buildAst } from '../src/execute';
-import { printProgram } from '../src/printer';
-import { inspect } from 'util';
+import { printJsModule } from '../src/printer';
+import { renderTemplate } from './templatedeployer';
 
-function executeTest(input: string, output: string) {
+function testAstGeneration(input: string, output: string) {
   input = path.resolve(__dirname, input);
   output = path.resolve(__dirname, output);
 
@@ -14,15 +14,31 @@ function executeTest(input: string, output: string) {
   const outputData = fs.readFileSync(output, { encoding: 'utf8' });
 
   const program = buildAst(inputData);
-  
-  const stream: string[] = [];
-  printProgram(program, stream);
+  const jsModule = printJsModule(program);
 
-  //fs.writeFileSync(output, stream.join('\n'), {encoding:'utf8'});
+  //fs.writeFileSync(output, jsModule, {encoding:'utf8'});
   
-  expect(stream.join('\n')).to.equal(outputData);
+  expect(jsModule).to.equal(outputData);
+}
+
+function testTemplateGeneration(input: string, output: string) {
+  input = path.resolve(__dirname, input);
+  output = path.resolve(__dirname, output);
+
+  const inputData = fs.readFileSync(input, { encoding: 'utf8' });
+  const outputData = fs.readFileSync(output, { encoding: 'utf8' });
+
+  const template = renderTemplate(inputData);
+
+  //fs.writeFileSync(output, template, {encoding:'utf8'});
+
+  expect(template).to.equal(outputData);
 }
 
 describe('AST generation', () => {
-  it('basic', () => executeTest('./basic.arm', './basic.js'));
+  it('basic', () => testAstGeneration('./basic.arm', './basic.js'));
+});
+
+describe('Template generation', () => {
+  it('basic', () => testTemplateGeneration('./basic.arm', './basic.json'));
 });
