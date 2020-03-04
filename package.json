@@ -4,6 +4,7 @@
   "description": "ARM Typescript template generator transpiler",
   "main": "index",
   "scripts": {
+    "watch": "ts-node tests/watch.ts",
     "clean": "rimraf ./dist",
     "compile": "npm run clean && tsc -p .",
     "antlr": "antlr4ts -visitor ./src/antlr4/ArmLang.g4",
