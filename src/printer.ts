@@ -59,7 +59,7 @@ export function printJsModule(program: ProgramAst) {
   }
 
   for (const resource of program.resources) {
-    stream.push(`d.resource('${resource.provider.name}', ${resource.type.value}, '${resource.name.name}', ${renderProperty(resource.properties)});`)
+    stream.push(`d.resource('${resource.provider.name}', ${renderProperty(resource.type)}, '${resource.name.name}', ${renderProperty(resource.properties)});`)
   }
 
   for (const output of program.outputs) {

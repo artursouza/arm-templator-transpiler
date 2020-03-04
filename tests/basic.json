@@ -8,11 +8,11 @@
   },
   "resources": [
     {
-      "name": "[concat([params('namePrefix')], -subnet)]",
+      "name": "[concat(parameters('namePrefix'), '-subnet')]",
       "properties": {}
     },
     {
-      "name": "[concat([params('namePrefix')], -nic)]",
+      "name": "[concat(parameters('namePrefix'), '-nic')]",
       "properties": {
         "ipConfigurations": {
           "name": "myConfig",
@@ -26,7 +26,7 @@
       }
     },
     {
-      "name": "[concat([params('namePrefix')], -pip)]",
+      "name": "[concat(parameters('namePrefix'), '-pip')]",
       "properties": {}
     }
   ],

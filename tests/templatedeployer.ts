@@ -93,10 +93,10 @@ export class TemplateDeployer implements Deployer {
     return outputs;
   }
 
-  renderProperty(input: Property) {
+  renderProperty(input: Property): any {
     if (input instanceof IdentifierProperty) {
       if (this.params[input.name]) {
-        return `params('${input.name}')`;
+        return `parameters('${input.name}')`;
       }
 
       throw new Error(`Unable to find param '${input.name}'`);
@@ -108,7 +108,7 @@ export class TemplateDeployer implements Deployer {
           const resource = this.resources[(input.params[0] as IdentifierProperty).name];
           return `resourceId('${resource.type}')`;
         case 'concat':
-          return `concat(${input.params.map(p => this.renderObject(p)).join(', ')})`;
+          return `concat(${input.params.map(p => typeof p === 'string' ? `'${p}'` : this.renderProperty(p)).join(', ')})`;
       }
 
       throw new Error(`Unable to handle function '${input.name}'`);
