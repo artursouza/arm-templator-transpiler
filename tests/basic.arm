@@ -21,7 +21,6 @@ resource azrm 'network/networkInterfaces@2019-11-01' myNic {
     }
 }
 
-
 /* this block comment should be ignored
 resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
     name: concat(namePrefix, '-pip')
