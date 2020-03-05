@@ -40,15 +40,15 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
   }
 
   visitInputDecl(ctx: InputDeclContext) {
-    const name = new IdentifierAst(ctx.getChild(1).text);
-    const type = this.visit(ctx.getChild(2)) as TypeAst;
+    const name = new IdentifierAst(ctx.Identifier().text);
+    const type = this.visitType(ctx.type());
 
     return new InputDeclAst(name, type);
   }
 
   visitOutputDecl(ctx: OutputDeclContext) {
-    const name = new IdentifierAst(ctx.getChild(1).text);
-    const value = this.visit(ctx.getChild(2));
+    const name = new IdentifierAst(ctx.Identifier().text);
+    const value = this.visitProperty(ctx.property());
 
     return new OutputDeclAst(name, value);
   }
@@ -67,34 +67,32 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
   }
 
   visitObject(ctx: ObjectContext) {
-    const output = [];
+    const properties = ctx.objectProperty().map(prop => this.visitObjectProperty(prop));
 
-    if (ctx.children) {
-      for (let i = 1; i < ctx.children?.length - 1; i++) {
-        const property = this.visit(ctx.getChild(i)) as ObjectPropertyAst;
-        output.push(property);
-      }
-    }
-
-    return new ObjectAst(output);
+    return new ObjectAst(properties);
   }
 
   visitObjectProperty(ctx: ObjectPropertyContext) {
-    const name = new IdentifierAst(ctx.getChild(0).text);
-    const prop = this.visit(ctx.getChild(2));
+    const name = new IdentifierAst(ctx.Identifier().text);
+    const prop = this.visitProperty(ctx.property());
     
     return new ObjectPropertyAst(name, prop);
   }
 
   visitProperty(ctx: PropertyContext) {
-    if (ctx.Number()) {
-      return new NumberAst(parseInt(ctx.text));
+    const numberText = ctx.Number()?.text;
+    if (numberText !== undefined) {
+      return new NumberAst(parseInt(numberText));
     }
-    if (ctx.String()) {
-      return new StringAst(ctx.text);
+
+    const stringText = ctx.String()?.text;
+    if (stringText !== undefined) {
+      return new StringAst(stringText);
     }
-    if (ctx.Identifier()) {
-      return new IdentifierAst(ctx.text);
+
+    const identifierText = ctx.Identifier()?.text;
+    if (identifierText !== undefined) {
+      return new IdentifierAst(identifierText);
     }
 
     return this.visit(ctx.getChild(0));
@@ -103,24 +101,16 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
   visitArray(ctx: ArrayContext) {
     const output = [];
 
-    for (const child of ctx.children || []) {
-      const prop = this.visit(child);
-      output.push(prop);
+    for (const prop of ctx.property() || []) {
+      output.push(this.visit(prop));
     }
 
     return new ArrayAst(output);
   }
 
   visitFunctionCall(ctx: FunctionCallContext) {
-    const name = new IdentifierAst(ctx.getChild(0).text);
-
-    const params = [];
-    if (ctx.children) {
-      for (let i = 2; i < ctx.children?.length - 1; i += 2) {
-        const property = this.visit(ctx.getChild(i));
-        params.push(property);
-      }
-    }
+    const name = new IdentifierAst(ctx.Identifier().text);
+    const params = ctx.property().map(prop => this.visitProperty(prop));
 
     return new FunctionCallAst(name, params);
   }

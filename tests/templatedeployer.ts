@@ -156,7 +156,7 @@ export class TemplateDeployer implements Deployer {
     }
 
     if (Array.isArray(input)) {
-      return input.map(this.renderObject);
+      return input.map(p => this.renderObject(p));
     }
 
     if (typeof input === 'object') {

@@ -1,39 +1,49 @@
+input location string
 input namePrefix string
 
 resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
-    name: concat(namePrefix, '-subnet')
-    properties: {
+  name: concat(namePrefix, '-subnet')
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        '10.0.0.0/24'
+      ]
     }
+  }
 }
 
 resource azrm 'network/networkInterfaces@2019-11-01' myNic {
-    name: concat(namePrefix, '-nic')
-    properties: {
-        ipConfigurations: {
-            name: 'myConfig'
-            properties: {
-                subnet: {
-                    id: resourceId(mySubnet)
-                }
-                privateIPAllocationMethod: 'Dynamic'
-            }
+  name: concat(namePrefix, '-nic')
+  location: location
+  properties: {
+    ipConfigurations: [{
+      name: 'myConfig'
+      properties: {
+        subnet: {
+          id: resourceId(mySubnet)
         }
-    }
+        privateIPAllocationMethod: 'Dynamic'
+      }
+    }]
+  }
 }
 
 /* this block comment should be ignored
 resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
-    name: concat(namePrefix, '-pip')
-    properties: {
-    }
+  name: concat(namePrefix, '-pip')
+  properties: {
+  }
 }
 */
 
 // this comment should be ignored
 resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
-    name: concat(namePrefix, '-pip')
-    properties: {
-    }
+  name: concat(namePrefix, '-pip')
+  location: location
+  properties: {
+    publicIPAllocationMethod: 'Dynamic'
+  }
 }
 
 output nicResourceId resourceId(myNic)

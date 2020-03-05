@@ -2,6 +2,9 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "location": {
+      "type": "string"
+    },
     "namePrefix": {
       "type": "string"
     }
@@ -11,29 +14,42 @@
       "apiVersion": "2019-11-01",
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[concat(parameters('namePrefix'), '-subnet')]",
-      "properties": {}
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/24"
+          ]
+        }
+      }
     },
     {
       "apiVersion": "2019-11-01",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(parameters('namePrefix'), '-nic')]",
+      "location": "[parameters('location')]",
       "properties": {
-        "ipConfigurations": {
-          "name": "myConfig",
-          "properties": {
-            "subnet": {
-              "id": "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
-            },
-            "privateIPAllocationMethod": "Dynamic"
+        "ipConfigurations": [
+          {
+            "name": "myConfig",
+            "properties": {
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
+              },
+              "privateIPAllocationMethod": "Dynamic"
+            }
           }
-        }
+        ]
       }
     },
     {
       "apiVersion": "2019-11-01",
       "type": "Microsoft.Network/publicIpAddresses",
       "name": "[concat(parameters('namePrefix'), '-pip')]",
-      "properties": {}
+      "location": "[parameters('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
     }
   ],
   "outputs": {
