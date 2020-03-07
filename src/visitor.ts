@@ -2,8 +2,87 @@ import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, St
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { ArmLangVisitor } from './antlr4/ArmLangVisitor';
 import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext } from './antlr4/ArmLangParser';
+import { Dictionary } from 'lodash';
+import { RuleContext, Token } from 'antlr4ts';
 
-export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisitor<Ast> {
+class VisitorContext {
+  public errors: Error[] = [];
+  public inputs: Dictionary<string> = {};
+  public identifiers: Dictionary<RuleContext> = {};
+}
+
+abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> implements ArmLangVisitor<void> {
+  constructor(context: VisitorContext) {
+    super();
+    this.context = context;
+  }
+
+  protected context: VisitorContext;
+
+  defaultResult(): void { }
+
+  protected addError(message: string, token: Token) {
+    const error = new Error(`[${token.line}:${token.charPositionInLine}] ${message}`);
+    this.context.errors.push(error);
+  }
+}
+
+class ScopePopulatorVisitor extends AbstractArmVisitor {
+  visitResource(ctx: ResourceContext) {
+    this.visitChildren(ctx);
+
+    const identifier = ctx.Identifier(1).text;
+
+    if (this.context.identifiers[identifier]) {
+      this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier(1).symbol);
+    }
+
+    this.context.identifiers[identifier] = ctx;
+  }
+
+  visitInputDecl(ctx: InputDeclContext) {
+    this.visitChildren(ctx);
+
+    const identifier = ctx.Identifier().text;
+    if (this.context.identifiers[identifier]) {
+      this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier().symbol);
+    }
+
+    this.context.identifiers[identifier] = ctx;
+    this.context.inputs[identifier] = ctx.type().text;
+  }
+
+  visitType(ctx: TypeContext) {
+    this.visitChildren(ctx);
+
+    switch (ctx.text) {
+      case 'string':
+      case 'securestring':
+      case 'int':
+      case 'bool':
+      case 'object':
+      case 'array':
+        return;
+      default:
+        this.addError(`Unrecognized type '${ctx.text}'`, ctx.start);
+    }
+  }
+}
+
+class ScopeCheckVisitor extends AbstractArmVisitor {
+  visitProperty(ctx: PropertyContext) {
+    this.visitChildren(ctx);
+
+    const identifier = ctx.Identifier();
+    if (identifier) {
+      if (!this.context.identifiers[identifier.text]) {
+        this.addError(`Unrecognized identifier '${identifier}'`, identifier.symbol);
+      }
+    }
+  }
+}
+
+class ArmAstVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisitor<Ast> {
   defaultResult(): number {
     return 0
   }
@@ -117,7 +196,23 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
 }
 
 export function visit(context: ProgramContext) {
-  const visitor = new ArmVisitor();
+  const visitorContext = new VisitorContext();
+  const visitors: AbstractArmVisitor[] = [
+    new ScopePopulatorVisitor(visitorContext),
+    new ScopeCheckVisitor(visitorContext),
+  ];
 
+  for (const visitor of visitors) {
+    context.accept(visitor);
+    if (visitorContext.errors.length > 0) {
+      for (const error of visitorContext.errors) {
+        console.error(error.message);
+      }
+
+      throw new Error(`Parsing failed: \n${visitorContext.errors.map(e => e.message).join('\n')}`);
+    }
+  }
+
+  const visitor = new ArmAstVisitor();
   return context.accept(visitor) as ProgramAst;
 }
