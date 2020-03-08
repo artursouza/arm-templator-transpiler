@@ -8,3 +8,13 @@
 * Can we always infer dependency order, or do we need syntax to specify custom dependency order?
 * Need to consider how 'actions' on resources are declared (e.g. listKeys on a storage account).
 * Breaking out into a different language: would syntax like "resource javascript ..." be annoying to work with, or should in-lining a different language be simpler?
+* Print statement for debugging?
+* Rename input -> params for familiarity?
+
+* Examples of:
+  * Modular templates
+  * Nested templates (or syntax for re-deploying the same resource)
+  * Deploying children resources
+  * Resources at different scopes (extension, tenant, subscription, rg)
+  * 'Actions' on resources - e.g. listKeys
+  * Inferring dependencies between resources
