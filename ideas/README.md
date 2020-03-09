@@ -19,3 +19,4 @@
   * Resources at different scopes (extension, tenant, subscription, rg)
   * 'Actions' on resources - e.g. listKeys
   * Inferring dependencies between resources
+  * Reuse of functions or wrapping them in a module? first class support for actions?
