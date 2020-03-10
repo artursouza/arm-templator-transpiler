@@ -2,6 +2,12 @@ input baseNames array
 input location string
 input condition bool
 
+/* Syntax examples.
+Note, we will need to think carefully about for loops and conditionals
+as although they look 'imperative', there are certain concepts that do not
+translate well into declarative code - for example referencing conditionally-deployed resources
+or resources that have been deployed in a loop. */
+
 // for loop
 for baseName in baseNames {
   resource azrm 'storage/storageAccounts@2015-06-15' loopAccounts {
