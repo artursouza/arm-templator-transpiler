@@ -6,28 +6,6 @@ import { Dictionary } from 'lodash';
 import { RuleContext, Token } from 'antlr4ts';
 import { inspect } from 'util';
 
-function findDependencyCycle(originalIdentifier: string, identifier: string, scope: Scope, visited: Set<string>): string[] | undefined {
-  if (!scope.dependencies[identifier]) {
-    return;
-  }
-
-  for (const dependency of scope.dependencies[identifier]) {
-    if (visited.has(dependency)) {
-      continue;
-    }
-
-    if (dependency === originalIdentifier) {
-      return [originalIdentifier];
-    }
-
-    visited.add(dependency);
-    const result = findDependencyCycle(originalIdentifier, dependency, scope, visited);
-    if (result) {
-      return [dependency, ...result];
-    }
-  }
-}
-
 abstract class Scope {
   public inputs: Dictionary<string> = {};
   public resources: string[] = [];
@@ -167,11 +145,33 @@ class DependencyBuilderVisitor extends AbstractArmVisitor {
   private currentScope: Scope = this.globalScope;
   private currentIdentifier?: string;
 
+  findDependencyCycle(originalIdentifier: string, identifier: string, scope: Scope, visited: Set<string>): string[] | undefined {
+    if (!scope.dependencies[identifier]) {
+      return;
+    }
+  
+    for (const dependency of scope.dependencies[identifier]) {
+      if (visited.has(dependency)) {
+        continue;
+      }
+  
+      if (dependency === originalIdentifier) {
+        return [originalIdentifier];
+      }
+  
+      visited.add(dependency);
+      const result = this.findDependencyCycle(originalIdentifier, dependency, scope, visited);
+      if (result) {
+        return [dependency, ...result];
+      }
+    }
+  }
+
   detectCycles(scope: Scope) {
     for (const identifier of Object.keys(scope.dependencies)) {
-      const cycle = findDependencyCycle(identifier, identifier, scope, new Set<string>());
+      const cycle = this.findDependencyCycle(identifier, identifier, scope, new Set<string>());
       if (cycle) {
-        this.addError(`Found cyclic dependency (${cycle.join(' -> ')})`, scope.identifiers[identifier]);
+        this.addError(`Found cyclic dependency (${identifier} -> ${cycle.join(' -> ')})`, scope.identifiers[identifier]);
       }
     }
   }
