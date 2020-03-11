@@ -545,7 +545,7 @@ class TemplateGenerationVisitor extends AbstractArmVisitor {
           const resource = this.resources[identifier];
           // todo improve this
           return `resourceId(${this.unescapeExpression(resource.type)}, ${this.unescapeExpression(resource.name)})`;
-        case 'concat':
+        default:
           const evaluatedValues: any[] = [];
           for (const property of functionCallCtx.property()) {
             const evaluated = this.visitFunctionParamProperty(property);
@@ -554,10 +554,9 @@ class TemplateGenerationVisitor extends AbstractArmVisitor {
             }
             evaluatedValues.push(evaluated);
           }
-          return `concat(${evaluatedValues.join(', ')})`
-      }
 
-      throw new Error(`Function ${functionName} is not supported in this prototype!`);
+          return `${functionName}(${evaluatedValues.join(', ')})`
+      }
     }
 
     return this.visitChildren(ctx);
