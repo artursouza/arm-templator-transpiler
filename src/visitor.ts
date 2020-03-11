@@ -17,6 +17,12 @@ class GlobalScope extends Scope {
 }
 
 class ModuleScope extends Scope {
+  constructor(external: boolean) {
+    super();
+    this.external = external;
+  }
+
+  public external: boolean;
 }
 
 abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> implements ArmLangVisitor<void> {
@@ -45,8 +51,10 @@ class ScopePopulatorVisitor extends AbstractArmVisitor {
     }
 
     const oldScope = this.currentScope;
-    
-    const moduleScope = new ModuleScope();
+
+    const external = ctx.start.text === 'export';
+
+    const moduleScope = new ModuleScope(external);
     this.globalScope.modules[identifier] = moduleScope;
     this.currentScope = moduleScope;
 
