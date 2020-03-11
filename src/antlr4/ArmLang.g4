@@ -39,6 +39,10 @@ functionCall
     | Identifier '(' property (',' property)* ')'
     ;
 
+identifierCall
+    : Identifier
+    ;
+
 Identifier
     : NonDigit
         (   NonDigit
@@ -68,10 +72,16 @@ property
     | Number
     | 'true'
     | 'false'
-    | Identifier
     | object
     | array
-    | functionCall
+    | identifierCall propertyTail
+    | functionCall propertyTail
+    ;
+
+propertyTail
+    : '.' identifierCall propertyTail
+    | '.' functionCall propertyTail
+    | /* epsilon */
     ;
 
 fragment NonDigit

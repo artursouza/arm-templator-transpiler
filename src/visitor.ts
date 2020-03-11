@@ -1,9 +1,101 @@
-import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst } from './ast';
+import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst, AccessAst } from './ast';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { ArmLangVisitor } from './antlr4/ArmLangVisitor';
-import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext } from './antlr4/ArmLangParser';
+import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext, IdentifierCallContext, PropertyTailContext } from './antlr4/ArmLangParser';
+import { Dictionary } from 'lodash';
+import { RuleContext, Token } from 'antlr4ts';
+import { inspect } from 'util';
 
-export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisitor<Ast> {
+class VisitorContext {
+  public errors: Error[] = [];
+  public inputs: Dictionary<string> = {};
+  public identifiers: Dictionary<RuleContext> = {};
+  public dependencies: Dictionary<string[]> = {};
+}
+
+abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> implements ArmLangVisitor<void> {
+  constructor(context: VisitorContext) {
+    super();
+    this.context = context;
+  }
+
+  protected context: VisitorContext;
+
+  defaultResult(): void { }
+
+  protected addError(message: string, token: Token) {
+    const error = new Error(`[${token.line}:${token.charPositionInLine}] ${message}`);
+    this.context.errors.push(error);
+  }
+}
+
+class ScopePopulatorVisitor extends AbstractArmVisitor {
+  visitResource(ctx: ResourceContext) {
+    this.visitChildren(ctx);
+
+    const identifier = ctx.Identifier(1).text;
+
+    if (this.context.identifiers[identifier]) {
+      this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier(1).symbol);
+    }
+
+    this.context.identifiers[identifier] = ctx;
+  }
+
+  visitInputDecl(ctx: InputDeclContext) {
+    this.visitChildren(ctx);
+
+    const identifier = ctx.Identifier().text;
+    if (this.context.identifiers[identifier]) {
+      this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier().symbol);
+    }
+
+    this.context.identifiers[identifier] = ctx;
+    this.context.inputs[identifier] = ctx.type().text;
+  }
+
+  visitType(ctx: TypeContext) {
+    this.visitChildren(ctx);
+
+    switch (ctx.text) {
+      case 'string':
+      case 'securestring':
+      case 'int':
+      case 'bool':
+      case 'object':
+      case 'array':
+        return;
+      default:
+        this.addError(`Unrecognized type '${ctx.text}'`, ctx.start);
+    }
+  }
+}
+
+class ScopeCheckVisitor extends AbstractArmVisitor {
+  private currentScope: string = '';
+  
+  visitResource(ctx: ResourceContext) {
+    this.currentScope = ctx.getChild(3).text;
+  }
+
+  visitIdentifierCall(ctx: IdentifierCallContext) {
+    this.visitChildren(ctx);
+
+    const identifier = ctx.Identifier();
+    if (!this.context.identifiers[identifier.text]) {
+      this.addError(`Unrecognized identifier '${identifier}'`, identifier.symbol);
+    }
+
+    if (!this.context.dependencies[this.currentScope]) {
+      this.context.dependencies[this.currentScope] = [];
+    }
+    if (this.context.dependencies[this.currentScope].indexOf(identifier.text) < 0) {
+      this.context.dependencies[this.currentScope].push(identifier.text);
+    }
+  }
+}
+
+class ArmAstVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisitor<Ast> {
   defaultResult(): number {
     return 0
   }
@@ -90,7 +182,20 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
       return new StringAst(stringText);
     }
 
-    const identifierText = ctx.Identifier()?.text;
+    const propertyTail = ctx.propertyTail();
+    if (propertyTail && propertyTail.childCount > 0) {
+      const parentCtx = ctx.identifierCall() || ctx.functionCall();
+
+      if (!parentCtx) {
+        throw new Error('Parsing failed: Unable to find parent');
+      }
+
+      const child = this.visit(propertyTail);
+      const parent = this.visit(parentCtx);
+      return new AccessAst(parent, child);
+    }
+    
+    const identifierText = ctx.identifierCall()?.Identifier().text;
     if (identifierText !== undefined) {
       return new IdentifierAst(identifierText);
     }
@@ -114,10 +219,51 @@ export class ArmVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLang
 
     return new FunctionCallAst(name, params);
   }
+
+  visitIdentifierCall(ctx: IdentifierCallContext) {
+    return new IdentifierAst(ctx.Identifier().text);
+  }
+
+  visitPropertyTail(ctx: PropertyTailContext): Ast {
+    const propertyTail = ctx.propertyTail();
+    const parentCtx = ctx.identifierCall() || ctx.functionCall();
+
+    if (!parentCtx) {
+      throw new Error('Parsing failed: Unable to find parent');
+    }
+
+    if (!propertyTail) {
+      throw new Error('Parsing failed: unable to find tail');
+    }
+
+    if (propertyTail.childCount === 0) {
+      return this.visit(parentCtx);
+    }
+
+    const child = this.visit(propertyTail);
+    const parent = this.visit(parentCtx);
+    return new AccessAst(parent, child);
+  }
 }
 
 export function visit(context: ProgramContext) {
-  const visitor = new ArmVisitor();
+  const visitorContext = new VisitorContext();
+  const visitors: AbstractArmVisitor[] = [
+    new ScopePopulatorVisitor(visitorContext),
+    new ScopeCheckVisitor(visitorContext),
+  ];
 
+  for (const visitor of visitors) {
+    context.accept(visitor);
+    if (visitorContext.errors.length > 0) {
+      for (const error of visitorContext.errors) {
+        console.error(error.message);
+      }
+
+      throw new Error(`Parsing failed: \n${visitorContext.errors.map(e => e.message).join('\n')}`);
+    }
+  }
+
+  const visitor = new ArmAstVisitor();
   return context.accept(visitor) as ProgramAst;
 }
