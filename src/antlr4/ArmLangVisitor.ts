@@ -8,6 +8,7 @@ import { SectionContext } from "./ArmLangParser";
 import { InputDeclContext } from "./ArmLangParser";
 import { OutputDeclContext } from "./ArmLangParser";
 import { ResourceContext } from "./ArmLangParser";
+import { VariableContext } from "./ArmLangParser";
 import { ModuleContext } from "./ArmLangParser";
 import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
@@ -62,6 +63,13 @@ export interface ArmLangVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitResource?: (ctx: ResourceContext) => Result;
+
+	/**
+	 * Visit a parse tree produced by `ArmLangParser.variable`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitVariable?: (ctx: VariableContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by `ArmLangParser.module`.

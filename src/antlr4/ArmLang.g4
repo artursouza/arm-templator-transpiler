@@ -22,6 +22,10 @@ resource
     : 'resource' Identifier String Identifier object
     ;
 
+variable
+    : 'variable' Identifier property
+    ;
+
 module
     : ('export'|) 'module' Identifier '{' (section)* '}'
     ;

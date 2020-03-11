@@ -8,6 +8,7 @@ import { SectionContext } from "./ArmLangParser";
 import { InputDeclContext } from "./ArmLangParser";
 import { OutputDeclContext } from "./ArmLangParser";
 import { ResourceContext } from "./ArmLangParser";
+import { VariableContext } from "./ArmLangParser";
 import { ModuleContext } from "./ArmLangParser";
 import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
@@ -79,6 +80,17 @@ export interface ArmLangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitResource?: (ctx: ResourceContext) => void;
+
+	/**
+	 * Enter a parse tree produced by `ArmLangParser.variable`.
+	 * @param ctx the parse tree
+	 */
+	enterVariable?: (ctx: VariableContext) => void;
+	/**
+	 * Exit a parse tree produced by `ArmLangParser.variable`.
+	 * @param ctx the parse tree
+	 */
+	exitVariable?: (ctx: VariableContext) => void;
 
 	/**
 	 * Enter a parse tree produced by `ArmLangParser.module`.
