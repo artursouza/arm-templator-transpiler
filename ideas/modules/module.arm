@@ -1,3 +1,4 @@
+// make this explicitly private, optimize for public
 module basicStorageAccount {
   input accountName string
   input location string

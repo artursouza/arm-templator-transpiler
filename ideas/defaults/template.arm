@@ -13,6 +13,7 @@ resource module './defaults@basicNic' myNic {
     location: input.location
     subnet: reference(subnetResourceId)
   }
+  // user should not have to look at underlying module code to consume it
 }
 
 resource module './defaults@basicVm' myVm {
@@ -32,4 +33,5 @@ resource module './defaults@basicVm' myVm {
   }
 }
 
+// output diagsUrl: diagsAccount should output everything
 output diagsUrl: diagsAccount.blobUrl

@@ -7,6 +7,12 @@
     },
     "namePrefix": {
       "type": "string"
+    },
+    "myParam": {
+      "type": "string"
+    },
+    "nicName": {
+      "type": "string"
     }
   },
   "resources": [
@@ -56,9 +62,21 @@
     }
   ],
   "outputs": {
-    "nicResourceId": {
+    "nicId": {
       "type": "string",
       "value": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '-nic'))]"
+    },
+    "myNewOutput": {
+      "type": "string",
+      "value": "test"
+    },
+    "somethingElse": {
+      "type": "string",
+      "value": "MyOutput"
+    },
+    "myOutput": {
+      "type": "string",
+      "value": "another output"
     }
   }
 }

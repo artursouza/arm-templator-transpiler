@@ -65,5 +65,6 @@ export resource azrm 'storage/storageAccounts@2015-06-15' basicStorage {
   location: input.location
   properties: {
     accountType: 'Standard_LRS'
+    storageEndpoint: 'http://whatever' 
   }
 }
