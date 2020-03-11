@@ -13,6 +13,10 @@ resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
   }
 }
 
+variable subnetReference {
+  id: resourceId(mySubnet)
+}
+
 resource azrm 'network/networkInterfaces@2019-11-01' myNic {
   name: concat(namePrefix, '-nic')
   location: location
@@ -20,9 +24,7 @@ resource azrm 'network/networkInterfaces@2019-11-01' myNic {
     ipConfigurations: [{
       name: 'myConfig'
       properties: {
-        subnet: {
-          id: resourceId(mySubnet)
-        }
+        subnet: subnetReference
         privateIPAllocationMethod: 'Dynamic'
       }
     }]

@@ -448,7 +448,7 @@ class TemplateGenerationVisitor extends AbstractArmVisitor {
 
   visitTopLevelProperty(ctx: PropertyContext): any {
     const output = this.visitProperty(ctx);
-    if (ctx.identifierCall() || ctx.functionCall()) {
+    if (typeof output === 'string' && (ctx.identifierCall() || ctx.functionCall())) {
       // TODO proper escaping
       return `[${output}]`;
     }
