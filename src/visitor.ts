@@ -75,8 +75,8 @@ class ScopePopulatorVisitor extends AbstractArmVisitor {
       this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier().symbol);
     }
 
-    this.currentScope.identifiers[identifier] = ctx.Identifier().symbol;
     this.currentScope.inputs[identifier] = ctx.type().text;
+    this.currentScope.identifiers[identifier] = ctx.Identifier().symbol;
   }
 
   visitType(ctx: TypeContext) {

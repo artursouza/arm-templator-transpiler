@@ -11,11 +11,11 @@ section
     ;
 
 inputDecl
-    : 'input' Identifier type
+    : 'input' type Identifier
     ;
 
 outputDecl
-    : 'output' Identifier property
+    : 'output' Identifier ':' property
     ;
 
 resource

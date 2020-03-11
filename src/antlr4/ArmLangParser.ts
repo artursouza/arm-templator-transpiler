@@ -79,8 +79,8 @@ export class ArmLangParser extends Parser {
 	];
 
 	private static readonly _LITERAL_NAMES: Array<string | undefined> = [
-		undefined, "'input'", "'output'", "'resource'", "'export'", "'module'", 
-		"'{'", "'}'", "':'", "'['", "']'", "'('", "')'", "','", "'string'", "'securestring'", 
+		undefined, "'input'", "'output'", "':'", "'resource'", "'export'", "'module'", 
+		"'{'", "'}'", "'['", "']'", "'('", "')'", "','", "'string'", "'securestring'", 
 		"'int'", "'bool'", "'object'", "'array'", "'true'", "'false'", "'.'",
 	];
 	private static readonly _SYMBOLIC_NAMES: Array<string | undefined> = [
@@ -123,21 +123,21 @@ export class ArmLangParser extends Parser {
 			this.state = 34;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			while ((((_la) & ~0x1F) === 0 && ((1 << _la) & ((1 << ArmLangParser.T__0) | (1 << ArmLangParser.T__1) | (1 << ArmLangParser.T__2) | (1 << ArmLangParser.T__3) | (1 << ArmLangParser.T__4))) !== 0)) {
+			while ((((_la) & ~0x1F) === 0 && ((1 << _la) & ((1 << ArmLangParser.T__0) | (1 << ArmLangParser.T__1) | (1 << ArmLangParser.T__3) | (1 << ArmLangParser.T__4) | (1 << ArmLangParser.T__5))) !== 0)) {
 				{
 				this.state = 32;
 				this._errHandler.sync(this);
 				switch (this._input.LA(1)) {
 				case ArmLangParser.T__0:
 				case ArmLangParser.T__1:
-				case ArmLangParser.T__2:
+				case ArmLangParser.T__3:
 					{
 					this.state = 30;
 					this.section();
 					}
 					break;
-				case ArmLangParser.T__3:
 				case ArmLangParser.T__4:
+				case ArmLangParser.T__5:
 					{
 					this.state = 31;
 					this.module();
@@ -175,7 +175,7 @@ export class ArmLangParser extends Parser {
 			this.state = 40;
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
-			case ArmLangParser.T__2:
+			case ArmLangParser.T__3:
 				this.enterOuterAlt(_localctx, 1);
 				{
 				this.state = 37;
@@ -224,9 +224,9 @@ export class ArmLangParser extends Parser {
 			this.state = 42;
 			this.match(ArmLangParser.T__0);
 			this.state = 43;
-			this.match(ArmLangParser.Identifier);
-			this.state = 44;
 			this.type();
+			this.state = 44;
+			this.match(ArmLangParser.Identifier);
 			}
 		}
 		catch (re) {
@@ -255,6 +255,8 @@ export class ArmLangParser extends Parser {
 			this.state = 47;
 			this.match(ArmLangParser.Identifier);
 			this.state = 48;
+			this.match(ArmLangParser.T__2);
+			this.state = 49;
 			this.property();
 			}
 		}
@@ -279,15 +281,15 @@ export class ArmLangParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 50;
-			this.match(ArmLangParser.T__2);
 			this.state = 51;
-			this.match(ArmLangParser.Identifier);
+			this.match(ArmLangParser.T__3);
 			this.state = 52;
-			this.match(ArmLangParser.String);
-			this.state = 53;
 			this.match(ArmLangParser.Identifier);
+			this.state = 53;
+			this.match(ArmLangParser.String);
 			this.state = 54;
+			this.match(ArmLangParser.Identifier);
+			this.state = 55;
 			this.object();
 			}
 		}
@@ -313,16 +315,16 @@ export class ArmLangParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 58;
+			this.state = 59;
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
-			case ArmLangParser.T__3:
+			case ArmLangParser.T__4:
 				{
-				this.state = 56;
-				this.match(ArmLangParser.T__3);
+				this.state = 57;
+				this.match(ArmLangParser.T__4);
 				}
 				break;
-			case ArmLangParser.T__4:
+			case ArmLangParser.T__5:
 				// tslint:disable-next-line:no-empty
 				{
 				}
@@ -330,28 +332,28 @@ export class ArmLangParser extends Parser {
 			default:
 				throw new NoViableAltException(this);
 			}
-			this.state = 60;
-			this.match(ArmLangParser.T__4);
 			this.state = 61;
-			this.match(ArmLangParser.Identifier);
-			this.state = 62;
 			this.match(ArmLangParser.T__5);
-			this.state = 66;
+			this.state = 62;
+			this.match(ArmLangParser.Identifier);
+			this.state = 63;
+			this.match(ArmLangParser.T__6);
+			this.state = 67;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			while ((((_la) & ~0x1F) === 0 && ((1 << _la) & ((1 << ArmLangParser.T__0) | (1 << ArmLangParser.T__1) | (1 << ArmLangParser.T__2))) !== 0)) {
+			while ((((_la) & ~0x1F) === 0 && ((1 << _la) & ((1 << ArmLangParser.T__0) | (1 << ArmLangParser.T__1) | (1 << ArmLangParser.T__3))) !== 0)) {
 				{
 				{
-				this.state = 63;
+				this.state = 64;
 				this.section();
 				}
 				}
-				this.state = 68;
+				this.state = 69;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
 			}
-			this.state = 69;
-			this.match(ArmLangParser.T__6);
+			this.state = 70;
+			this.match(ArmLangParser.T__7);
 			}
 		}
 		catch (re) {
@@ -376,24 +378,24 @@ export class ArmLangParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 71;
-			this.match(ArmLangParser.T__5);
-			this.state = 75;
+			this.state = 72;
+			this.match(ArmLangParser.T__6);
+			this.state = 76;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
 			while (_la === ArmLangParser.Identifier) {
 				{
 				{
-				this.state = 72;
+				this.state = 73;
 				this.objectProperty();
 				}
 				}
-				this.state = 77;
+				this.state = 78;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
 			}
-			this.state = 78;
-			this.match(ArmLangParser.T__6);
+			this.state = 79;
+			this.match(ArmLangParser.T__7);
 			}
 		}
 		catch (re) {
@@ -417,11 +419,11 @@ export class ArmLangParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 80;
-			this.match(ArmLangParser.Identifier);
 			this.state = 81;
-			this.match(ArmLangParser.T__7);
+			this.match(ArmLangParser.Identifier);
 			this.state = 82;
+			this.match(ArmLangParser.T__2);
+			this.state = 83;
 			this.property();
 			}
 		}
@@ -447,23 +449,23 @@ export class ArmLangParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 84;
+			this.state = 85;
 			this.match(ArmLangParser.T__8);
-			this.state = 88;
+			this.state = 89;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			while ((((_la) & ~0x1F) === 0 && ((1 << _la) & ((1 << ArmLangParser.T__5) | (1 << ArmLangParser.T__8) | (1 << ArmLangParser.T__19) | (1 << ArmLangParser.T__20) | (1 << ArmLangParser.Identifier) | (1 << ArmLangParser.Number) | (1 << ArmLangParser.String))) !== 0)) {
+			while ((((_la) & ~0x1F) === 0 && ((1 << _la) & ((1 << ArmLangParser.T__6) | (1 << ArmLangParser.T__8) | (1 << ArmLangParser.T__19) | (1 << ArmLangParser.T__20) | (1 << ArmLangParser.Identifier) | (1 << ArmLangParser.Number) | (1 << ArmLangParser.String))) !== 0)) {
 				{
 				{
-				this.state = 85;
+				this.state = 86;
 				this.property();
 				}
 				}
-				this.state = 90;
+				this.state = 91;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
 			}
-			this.state = 91;
+			this.state = 92;
 			this.match(ArmLangParser.T__9);
 			}
 		}
@@ -487,17 +489,17 @@ export class ArmLangParser extends Parser {
 		this.enterRule(_localctx, 18, ArmLangParser.RULE_functionCall);
 		let _la: number;
 		try {
-			this.state = 108;
+			this.state = 109;
 			this._errHandler.sync(this);
 			switch ( this.interpreter.adaptivePredict(this._input, 8, this._ctx) ) {
 			case 1:
 				this.enterOuterAlt(_localctx, 1);
 				{
-				this.state = 93;
-				this.match(ArmLangParser.Identifier);
 				this.state = 94;
-				this.match(ArmLangParser.T__10);
+				this.match(ArmLangParser.Identifier);
 				this.state = 95;
+				this.match(ArmLangParser.T__10);
+				this.state = 96;
 				this.match(ArmLangParser.T__11);
 				}
 				break;
@@ -505,29 +507,29 @@ export class ArmLangParser extends Parser {
 			case 2:
 				this.enterOuterAlt(_localctx, 2);
 				{
-				this.state = 96;
-				this.match(ArmLangParser.Identifier);
 				this.state = 97;
-				this.match(ArmLangParser.T__10);
+				this.match(ArmLangParser.Identifier);
 				this.state = 98;
+				this.match(ArmLangParser.T__10);
+				this.state = 99;
 				this.property();
-				this.state = 103;
+				this.state = 104;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
 				while (_la === ArmLangParser.T__12) {
 					{
 					{
-					this.state = 99;
-					this.match(ArmLangParser.T__12);
 					this.state = 100;
+					this.match(ArmLangParser.T__12);
+					this.state = 101;
 					this.property();
 					}
 					}
-					this.state = 105;
+					this.state = 106;
 					this._errHandler.sync(this);
 					_la = this._input.LA(1);
 				}
-				this.state = 106;
+				this.state = 107;
 				this.match(ArmLangParser.T__11);
 				}
 				break;
@@ -554,7 +556,7 @@ export class ArmLangParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 110;
+			this.state = 111;
 			this.match(ArmLangParser.Identifier);
 			}
 		}
@@ -579,7 +581,7 @@ export class ArmLangParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 112;
+			this.state = 113;
 			this.match(ArmLangParser.Identifier);
 			}
 		}
@@ -605,7 +607,7 @@ export class ArmLangParser extends Parser {
 		try {
 			this.enterOuterAlt(_localctx, 1);
 			{
-			this.state = 114;
+			this.state = 115;
 			_la = this._input.LA(1);
 			if (!((((_la) & ~0x1F) === 0 && ((1 << _la) & ((1 << ArmLangParser.T__13) | (1 << ArmLangParser.T__14) | (1 << ArmLangParser.T__15) | (1 << ArmLangParser.T__16) | (1 << ArmLangParser.T__17) | (1 << ArmLangParser.T__18))) !== 0))) {
 			this._errHandler.recoverInline(this);
@@ -638,13 +640,13 @@ export class ArmLangParser extends Parser {
 		let _localctx: PropertyContext = new PropertyContext(this._ctx, this.state);
 		this.enterRule(_localctx, 26, ArmLangParser.RULE_property);
 		try {
-			this.state = 128;
+			this.state = 129;
 			this._errHandler.sync(this);
 			switch ( this.interpreter.adaptivePredict(this._input, 9, this._ctx) ) {
 			case 1:
 				this.enterOuterAlt(_localctx, 1);
 				{
-				this.state = 116;
+				this.state = 117;
 				this.match(ArmLangParser.String);
 				}
 				break;
@@ -652,7 +654,7 @@ export class ArmLangParser extends Parser {
 			case 2:
 				this.enterOuterAlt(_localctx, 2);
 				{
-				this.state = 117;
+				this.state = 118;
 				this.match(ArmLangParser.Number);
 				}
 				break;
@@ -660,7 +662,7 @@ export class ArmLangParser extends Parser {
 			case 3:
 				this.enterOuterAlt(_localctx, 3);
 				{
-				this.state = 118;
+				this.state = 119;
 				this.match(ArmLangParser.T__19);
 				}
 				break;
@@ -668,7 +670,7 @@ export class ArmLangParser extends Parser {
 			case 4:
 				this.enterOuterAlt(_localctx, 4);
 				{
-				this.state = 119;
+				this.state = 120;
 				this.match(ArmLangParser.T__20);
 				}
 				break;
@@ -676,7 +678,7 @@ export class ArmLangParser extends Parser {
 			case 5:
 				this.enterOuterAlt(_localctx, 5);
 				{
-				this.state = 120;
+				this.state = 121;
 				this.object();
 				}
 				break;
@@ -684,7 +686,7 @@ export class ArmLangParser extends Parser {
 			case 6:
 				this.enterOuterAlt(_localctx, 6);
 				{
-				this.state = 121;
+				this.state = 122;
 				this.array();
 				}
 				break;
@@ -692,9 +694,9 @@ export class ArmLangParser extends Parser {
 			case 7:
 				this.enterOuterAlt(_localctx, 7);
 				{
-				this.state = 122;
-				this.identifierCall();
 				this.state = 123;
+				this.identifierCall();
+				this.state = 124;
 				this.propertyTail();
 				}
 				break;
@@ -702,9 +704,9 @@ export class ArmLangParser extends Parser {
 			case 8:
 				this.enterOuterAlt(_localctx, 8);
 				{
-				this.state = 125;
-				this.functionCall();
 				this.state = 126;
+				this.functionCall();
+				this.state = 127;
 				this.propertyTail();
 				}
 				break;
@@ -729,17 +731,17 @@ export class ArmLangParser extends Parser {
 		let _localctx: PropertyTailContext = new PropertyTailContext(this._ctx, this.state);
 		this.enterRule(_localctx, 28, ArmLangParser.RULE_propertyTail);
 		try {
-			this.state = 139;
+			this.state = 140;
 			this._errHandler.sync(this);
 			switch ( this.interpreter.adaptivePredict(this._input, 10, this._ctx) ) {
 			case 1:
 				this.enterOuterAlt(_localctx, 1);
 				{
-				this.state = 130;
-				this.match(ArmLangParser.T__21);
 				this.state = 131;
-				this.propertyCall();
+				this.match(ArmLangParser.T__21);
 				this.state = 132;
+				this.propertyCall();
+				this.state = 133;
 				this.propertyTail();
 				}
 				break;
@@ -747,11 +749,11 @@ export class ArmLangParser extends Parser {
 			case 2:
 				this.enterOuterAlt(_localctx, 2);
 				{
-				this.state = 134;
-				this.match(ArmLangParser.T__21);
 				this.state = 135;
-				this.functionCall();
+				this.match(ArmLangParser.T__21);
 				this.state = 136;
+				this.functionCall();
+				this.state = 137;
 				this.propertyTail();
 				}
 				break;
@@ -780,63 +782,64 @@ export class ArmLangParser extends Parser {
 	}
 
 	public static readonly _serializedATN: string =
-		"\x03\uC91D\uCABA\u058D\uAFBA\u4F53\u0607\uEA8B\uC241\x03\x1E\x90\x04\x02" +
+		"\x03\uC91D\uCABA\u058D\uAFBA\u4F53\u0607\uEA8B\uC241\x03\x1E\x91\x04\x02" +
 		"\t\x02\x04\x03\t\x03\x04\x04\t\x04\x04\x05\t\x05\x04\x06\t\x06\x04\x07" +
 		"\t\x07\x04\b\t\b\x04\t\t\t\x04\n\t\n\x04\v\t\v\x04\f\t\f\x04\r\t\r\x04" +
 		"\x0E\t\x0E\x04\x0F\t\x0F\x04\x10\t\x10\x03\x02\x03\x02\x07\x02#\n\x02" +
 		"\f\x02\x0E\x02&\v\x02\x03\x03\x03\x03\x03\x03\x05\x03+\n\x03\x03\x04\x03" +
-		"\x04\x03\x04\x03\x04\x03\x05\x03\x05\x03\x05\x03\x05\x03\x06\x03\x06\x03" +
-		"\x06\x03\x06\x03\x06\x03\x06\x03\x07\x03\x07\x05\x07=\n\x07\x03\x07\x03" +
-		"\x07\x03\x07\x03\x07\x07\x07C\n\x07\f\x07\x0E\x07F\v\x07\x03\x07\x03\x07" +
-		"\x03\b\x03\b\x07\bL\n\b\f\b\x0E\bO\v\b\x03\b\x03\b\x03\t\x03\t\x03\t\x03" +
-		"\t\x03\n\x03\n\x07\nY\n\n\f\n\x0E\n\\\v\n\x03\n\x03\n\x03\v\x03\v\x03" +
-		"\v\x03\v\x03\v\x03\v\x03\v\x03\v\x07\vh\n\v\f\v\x0E\vk\v\v\x03\v\x03\v" +
-		"\x05\vo\n\v\x03\f\x03\f\x03\r\x03\r\x03\x0E\x03\x0E\x03\x0F\x03\x0F\x03" +
+		"\x04\x03\x04\x03\x04\x03\x05\x03\x05\x03\x05\x03\x05\x03\x05\x03\x06\x03" +
+		"\x06\x03\x06\x03\x06\x03\x06\x03\x06\x03\x07\x03\x07\x05\x07>\n\x07\x03" +
+		"\x07\x03\x07\x03\x07\x03\x07\x07\x07D\n\x07\f\x07\x0E\x07G\v\x07\x03\x07" +
+		"\x03\x07\x03\b\x03\b\x07\bM\n\b\f\b\x0E\bP\v\b\x03\b\x03\b\x03\t\x03\t" +
+		"\x03\t\x03\t\x03\n\x03\n\x07\nZ\n\n\f\n\x0E\n]\v\n\x03\n\x03\n\x03\v\x03" +
+		"\v\x03\v\x03\v\x03\v\x03\v\x03\v\x03\v\x07\vi\n\v\f\v\x0E\vl\v\v\x03\v" +
+		"\x03\v\x05\vp\n\v\x03\f\x03\f\x03\r\x03\r\x03\x0E\x03\x0E\x03\x0F\x03" +
 		"\x0F\x03\x0F\x03\x0F\x03\x0F\x03\x0F\x03\x0F\x03\x0F\x03\x0F\x03\x0F\x03" +
-		"\x0F\x05\x0F\x83\n\x0F\x03\x10\x03\x10\x03\x10\x03\x10\x03\x10\x03\x10" +
-		"\x03\x10\x03\x10\x03\x10\x05\x10\x8E\n\x10\x03\x10\x02\x02\x02\x11\x02" +
-		"\x02\x04\x02\x06\x02\b\x02\n\x02\f\x02\x0E\x02\x10\x02\x12\x02\x14\x02" +
-		"\x16\x02\x18\x02\x1A\x02\x1C\x02\x1E\x02\x02\x03\x03\x02\x10\x15\x02\x93" +
-		"\x02$\x03\x02\x02\x02\x04*\x03\x02\x02\x02\x06,\x03\x02\x02\x02\b0\x03" +
-		"\x02\x02\x02\n4\x03\x02\x02\x02\f<\x03\x02\x02\x02\x0EI\x03\x02\x02\x02" +
-		"\x10R\x03\x02\x02\x02\x12V\x03\x02\x02\x02\x14n\x03\x02\x02\x02\x16p\x03" +
-		"\x02\x02\x02\x18r\x03\x02\x02\x02\x1At\x03\x02\x02\x02\x1C\x82\x03\x02" +
-		"\x02\x02\x1E\x8D\x03\x02\x02\x02 #\x05\x04\x03\x02!#\x05\f\x07\x02\" " +
-		"\x03\x02\x02\x02\"!\x03\x02\x02\x02#&\x03\x02\x02\x02$\"\x03\x02\x02\x02" +
-		"$%\x03\x02\x02\x02%\x03\x03\x02\x02\x02&$\x03\x02\x02\x02\'+\x05\n\x06" +
-		"\x02(+\x05\x06\x04\x02)+\x05\b\x05\x02*\'\x03\x02\x02\x02*(\x03\x02\x02" +
-		"\x02*)\x03\x02\x02\x02+\x05\x03\x02\x02\x02,-\x07\x03\x02\x02-.\x07\x19" +
-		"\x02\x02./\x05\x1A\x0E\x02/\x07\x03\x02\x02\x0201\x07\x04\x02\x0212\x07" +
-		"\x19\x02\x0223\x05\x1C\x0F\x023\t\x03\x02\x02\x0245\x07\x05\x02\x0256" +
-		"\x07\x19\x02\x0267\x07\x1B\x02\x0278\x07\x19\x02\x0289\x05\x0E\b\x029" +
-		"\v\x03\x02\x02\x02:=\x07\x06\x02\x02;=\x03\x02\x02\x02<:\x03\x02\x02\x02" +
-		"<;\x03\x02\x02\x02=>\x03\x02\x02\x02>?\x07\x07\x02\x02?@\x07\x19\x02\x02" +
-		"@D\x07\b\x02\x02AC\x05\x04\x03\x02BA\x03\x02\x02\x02CF\x03\x02\x02\x02" +
-		"DB\x03\x02\x02\x02DE\x03\x02\x02\x02EG\x03\x02\x02\x02FD\x03\x02\x02\x02" +
-		"GH\x07\t\x02\x02H\r\x03\x02\x02\x02IM\x07\b\x02\x02JL\x05\x10\t\x02KJ" +
-		"\x03\x02\x02\x02LO\x03\x02\x02\x02MK\x03\x02\x02\x02MN\x03\x02\x02\x02" +
-		"NP\x03\x02\x02\x02OM\x03\x02\x02\x02PQ\x07\t\x02\x02Q\x0F\x03\x02\x02" +
-		"\x02RS\x07\x19\x02\x02ST\x07\n\x02\x02TU\x05\x1C\x0F\x02U\x11\x03\x02" +
-		"\x02\x02VZ\x07\v\x02\x02WY\x05\x1C\x0F\x02XW\x03\x02\x02\x02Y\\\x03\x02" +
-		"\x02\x02ZX\x03\x02\x02\x02Z[\x03\x02\x02\x02[]\x03\x02\x02\x02\\Z\x03" +
-		"\x02\x02\x02]^\x07\f\x02\x02^\x13\x03\x02\x02\x02_`\x07\x19\x02\x02`a" +
-		"\x07\r\x02\x02ao\x07\x0E\x02\x02bc\x07\x19\x02\x02cd\x07\r\x02\x02di\x05" +
-		"\x1C\x0F\x02ef\x07\x0F\x02\x02fh\x05\x1C\x0F\x02ge\x03\x02\x02\x02hk\x03" +
-		"\x02\x02\x02ig\x03\x02\x02\x02ij\x03\x02\x02\x02jl\x03\x02\x02\x02ki\x03" +
-		"\x02\x02\x02lm\x07\x0E\x02\x02mo\x03\x02\x02\x02n_\x03\x02\x02\x02nb\x03" +
-		"\x02\x02\x02o\x15\x03\x02\x02\x02pq\x07\x19\x02\x02q\x17\x03\x02\x02\x02" +
-		"rs\x07\x19\x02\x02s\x19\x03\x02\x02\x02tu\t\x02\x02\x02u\x1B\x03\x02\x02" +
-		"\x02v\x83\x07\x1B\x02\x02w\x83\x07\x1A\x02\x02x\x83\x07\x16\x02\x02y\x83" +
-		"\x07\x17\x02\x02z\x83\x05\x0E\b\x02{\x83\x05\x12\n\x02|}\x05\x16\f\x02" +
-		"}~\x05\x1E\x10\x02~\x83\x03\x02\x02\x02\x7F\x80\x05\x14\v\x02\x80\x81" +
-		"\x05\x1E\x10\x02\x81\x83\x03\x02\x02\x02\x82v\x03\x02\x02\x02\x82w\x03" +
-		"\x02\x02\x02\x82x\x03\x02\x02\x02\x82y\x03\x02\x02\x02\x82z\x03\x02\x02" +
-		"\x02\x82{\x03\x02\x02\x02\x82|\x03\x02\x02\x02\x82\x7F\x03\x02\x02\x02" +
-		"\x83\x1D\x03\x02\x02\x02\x84\x85\x07\x18\x02\x02\x85\x86\x05\x18\r\x02" +
-		"\x86\x87\x05\x1E\x10\x02\x87\x8E\x03\x02\x02\x02\x88\x89\x07\x18\x02\x02" +
-		"\x89\x8A\x05\x14\v\x02\x8A\x8B\x05\x1E\x10\x02\x8B\x8E\x03\x02\x02\x02" +
-		"\x8C\x8E\x03\x02\x02\x02\x8D\x84\x03\x02\x02\x02\x8D\x88\x03\x02\x02\x02" +
-		"\x8D\x8C\x03\x02\x02\x02\x8E\x1F\x03\x02\x02\x02\r\"$*<DMZin\x82\x8D";
+		"\x0F\x03\x0F\x05\x0F\x84\n\x0F\x03\x10\x03\x10\x03\x10\x03\x10\x03\x10" +
+		"\x03\x10\x03\x10\x03\x10\x03\x10\x05\x10\x8F\n\x10\x03\x10\x02\x02\x02" +
+		"\x11\x02\x02\x04\x02\x06\x02\b\x02\n\x02\f\x02\x0E\x02\x10\x02\x12\x02" +
+		"\x14\x02\x16\x02\x18\x02\x1A\x02\x1C\x02\x1E\x02\x02\x03\x03\x02\x10\x15" +
+		"\x02\x94\x02$\x03\x02\x02\x02\x04*\x03\x02\x02\x02\x06,\x03\x02\x02\x02" +
+		"\b0\x03\x02\x02\x02\n5\x03\x02\x02\x02\f=\x03\x02\x02\x02\x0EJ\x03\x02" +
+		"\x02\x02\x10S\x03\x02\x02\x02\x12W\x03\x02\x02\x02\x14o\x03\x02\x02\x02" +
+		"\x16q\x03\x02\x02\x02\x18s\x03\x02\x02\x02\x1Au\x03\x02\x02\x02\x1C\x83" +
+		"\x03\x02\x02\x02\x1E\x8E\x03\x02\x02\x02 #\x05\x04\x03\x02!#\x05\f\x07" +
+		"\x02\" \x03\x02\x02\x02\"!\x03\x02\x02\x02#&\x03\x02\x02\x02$\"\x03\x02" +
+		"\x02\x02$%\x03\x02\x02\x02%\x03\x03\x02\x02\x02&$\x03\x02\x02\x02\'+\x05" +
+		"\n\x06\x02(+\x05\x06\x04\x02)+\x05\b\x05\x02*\'\x03\x02\x02\x02*(\x03" +
+		"\x02\x02\x02*)\x03\x02\x02\x02+\x05\x03\x02\x02\x02,-\x07\x03\x02\x02" +
+		"-.\x05\x1A\x0E\x02./\x07\x19\x02\x02/\x07\x03\x02\x02\x0201\x07\x04\x02" +
+		"\x0212\x07\x19\x02\x0223\x07\x05\x02\x0234\x05\x1C\x0F\x024\t\x03\x02" +
+		"\x02\x0256\x07\x06\x02\x0267\x07\x19\x02\x0278\x07\x1B\x02\x0289\x07\x19" +
+		"\x02\x029:\x05\x0E\b\x02:\v\x03\x02\x02\x02;>\x07\x07\x02\x02<>\x03\x02" +
+		"\x02\x02=;\x03\x02\x02\x02=<\x03\x02\x02\x02>?\x03\x02\x02\x02?@\x07\b" +
+		"\x02\x02@A\x07\x19\x02\x02AE\x07\t\x02\x02BD\x05\x04\x03\x02CB\x03\x02" +
+		"\x02\x02DG\x03\x02\x02\x02EC\x03\x02\x02\x02EF\x03\x02\x02\x02FH\x03\x02" +
+		"\x02\x02GE\x03\x02\x02\x02HI\x07\n\x02\x02I\r\x03\x02\x02\x02JN\x07\t" +
+		"\x02\x02KM\x05\x10\t\x02LK\x03\x02\x02\x02MP\x03\x02\x02\x02NL\x03\x02" +
+		"\x02\x02NO\x03\x02\x02\x02OQ\x03\x02\x02\x02PN\x03\x02\x02\x02QR\x07\n" +
+		"\x02\x02R\x0F\x03\x02\x02\x02ST\x07\x19\x02\x02TU\x07\x05\x02\x02UV\x05" +
+		"\x1C\x0F\x02V\x11\x03\x02\x02\x02W[\x07\v\x02\x02XZ\x05\x1C\x0F\x02YX" +
+		"\x03\x02\x02\x02Z]\x03\x02\x02\x02[Y\x03\x02\x02\x02[\\\x03\x02\x02\x02" +
+		"\\^\x03\x02\x02\x02][\x03\x02\x02\x02^_\x07\f\x02\x02_\x13\x03\x02\x02" +
+		"\x02`a\x07\x19\x02\x02ab\x07\r\x02\x02bp\x07\x0E\x02\x02cd\x07\x19\x02" +
+		"\x02de\x07\r\x02\x02ej\x05\x1C\x0F\x02fg\x07\x0F\x02\x02gi\x05\x1C\x0F" +
+		"\x02hf\x03\x02\x02\x02il\x03\x02\x02\x02jh\x03\x02\x02\x02jk\x03\x02\x02" +
+		"\x02km\x03\x02\x02\x02lj\x03\x02\x02\x02mn\x07\x0E\x02\x02np\x03\x02\x02" +
+		"\x02o`\x03\x02\x02\x02oc\x03\x02\x02\x02p\x15\x03\x02\x02\x02qr\x07\x19" +
+		"\x02\x02r\x17\x03\x02\x02\x02st\x07\x19\x02\x02t\x19\x03\x02\x02\x02u" +
+		"v\t\x02\x02\x02v\x1B\x03\x02\x02\x02w\x84\x07\x1B\x02\x02x\x84\x07\x1A" +
+		"\x02\x02y\x84\x07\x16\x02\x02z\x84\x07\x17\x02\x02{\x84\x05\x0E\b\x02" +
+		"|\x84\x05\x12\n\x02}~\x05\x16\f\x02~\x7F\x05\x1E\x10\x02\x7F\x84\x03\x02" +
+		"\x02\x02\x80\x81\x05\x14\v\x02\x81\x82\x05\x1E\x10\x02\x82\x84\x03\x02" +
+		"\x02\x02\x83w\x03\x02\x02\x02\x83x\x03\x02\x02\x02\x83y\x03\x02\x02\x02" +
+		"\x83z\x03\x02\x02\x02\x83{\x03\x02\x02\x02\x83|\x03\x02\x02\x02\x83}\x03" +
+		"\x02\x02\x02\x83\x80\x03\x02\x02\x02\x84\x1D\x03\x02\x02\x02\x85\x86\x07" +
+		"\x18\x02\x02\x86\x87\x05\x18\r\x02\x87\x88\x05\x1E\x10\x02\x88\x8F\x03" +
+		"\x02\x02\x02\x89\x8A\x07\x18\x02\x02\x8A\x8B\x05\x14\v\x02\x8B\x8C\x05" +
+		"\x1E\x10\x02\x8C\x8F\x03\x02\x02\x02\x8D\x8F\x03\x02\x02\x02\x8E\x85\x03" +
+		"\x02\x02\x02\x8E\x89\x03\x02\x02\x02\x8E\x8D\x03\x02\x02\x02\x8F\x1F\x03" +
+		"\x02\x02\x02\r\"$*=EN[jo\x83\x8E";
 	public static __ATN: ATN;
 	public static get _ATN(): ATN {
 		if (!ArmLangParser.__ATN) {
@@ -934,10 +937,10 @@ export class SectionContext extends ParserRuleContext {
 
 
 export class InputDeclContext extends ParserRuleContext {
-	public Identifier(): TerminalNode { return this.getToken(ArmLangParser.Identifier, 0); }
 	public type(): TypeContext {
 		return this.getRuleContext(0, TypeContext);
 	}
+	public Identifier(): TerminalNode { return this.getToken(ArmLangParser.Identifier, 0); }
 	constructor(parent: ParserRuleContext | undefined, invokingState: number) {
 		super(parent, invokingState);
 	}
