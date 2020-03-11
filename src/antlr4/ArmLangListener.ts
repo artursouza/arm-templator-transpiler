@@ -1,4 +1,4 @@
-// Generated from ./src/antlr4/ArmLang.g4 by ANTLR 4.7.3-SNAPSHOT
+// Generated from ArmLang.g4 by ANTLR 4.7.3-SNAPSHOT
 
 
 import { ParseTreeListener } from "antlr4ts/tree/ParseTreeListener";
@@ -8,11 +8,13 @@ import { SectionContext } from "./ArmLangParser";
 import { InputDeclContext } from "./ArmLangParser";
 import { OutputDeclContext } from "./ArmLangParser";
 import { ResourceContext } from "./ArmLangParser";
+import { ModuleContext } from "./ArmLangParser";
 import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
 import { ArrayContext } from "./ArmLangParser";
 import { FunctionCallContext } from "./ArmLangParser";
 import { IdentifierCallContext } from "./ArmLangParser";
+import { PropertyCallContext } from "./ArmLangParser";
 import { TypeContext } from "./ArmLangParser";
 import { PropertyContext } from "./ArmLangParser";
 import { PropertyTailContext } from "./ArmLangParser";
@@ -79,6 +81,17 @@ export interface ArmLangListener extends ParseTreeListener {
 	exitResource?: (ctx: ResourceContext) => void;
 
 	/**
+	 * Enter a parse tree produced by `ArmLangParser.module`.
+	 * @param ctx the parse tree
+	 */
+	enterModule?: (ctx: ModuleContext) => void;
+	/**
+	 * Exit a parse tree produced by `ArmLangParser.module`.
+	 * @param ctx the parse tree
+	 */
+	exitModule?: (ctx: ModuleContext) => void;
+
+	/**
 	 * Enter a parse tree produced by `ArmLangParser.object`.
 	 * @param ctx the parse tree
 	 */
@@ -132,6 +145,17 @@ export interface ArmLangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitIdentifierCall?: (ctx: IdentifierCallContext) => void;
+
+	/**
+	 * Enter a parse tree produced by `ArmLangParser.propertyCall`.
+	 * @param ctx the parse tree
+	 */
+	enterPropertyCall?: (ctx: PropertyCallContext) => void;
+	/**
+	 * Exit a parse tree produced by `ArmLangParser.propertyCall`.
+	 * @param ctx the parse tree
+	 */
+	exitPropertyCall?: (ctx: PropertyCallContext) => void;
 
 	/**
 	 * Enter a parse tree produced by `ArmLangParser.type`.

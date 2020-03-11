@@ -6,19 +6,26 @@ import { buildAst } from '../src/execute';
 import { printJsModule } from '../src/printer';
 import { renderTemplate } from './templatedeployer';
 
+function expectEqualIgnoringLineEndings(actual: string, expected: string) {
+  actual = actual.replace(/\r/g, '');
+  expected = expected.replace(/\r/g, '');
+
+  expect(actual).to.equal(expected);
+}
+
 function testAstGeneration(input: string, output: string) {
   input = path.resolve(__dirname, input);
   output = path.resolve(__dirname, output);
 
   const inputData = fs.readFileSync(input, { encoding: 'utf8' });
-  const outputData = fs.readFileSync(output, { encoding: 'utf8' });
+  const outputData = fs.readFileSync(output, { encoding: 'utf8' })
 
   const program = buildAst(inputData);
   const jsModule = printJsModule(program);
 
   //fs.writeFileSync(output, jsModule, {encoding:'utf8'});
   
-  expect(jsModule).to.equal(outputData);
+  expectEqualIgnoringLineEndings(jsModule, outputData);
 }
 
 function testTemplateGeneration(input: string, output: string) {
@@ -32,7 +39,7 @@ function testTemplateGeneration(input: string, output: string) {
 
   //fs.writeFileSync(output, template, {encoding:'utf8'});
 
-  expect(template).to.equal(outputData);
+  expectEqualIgnoringLineEndings(template, outputData);
 }
 
 describe('AST generation', () => {

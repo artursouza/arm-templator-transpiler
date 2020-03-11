@@ -1,57 +1,82 @@
 import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst, AccessAst } from './ast';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { ArmLangVisitor } from './antlr4/ArmLangVisitor';
-import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext, IdentifierCallContext, PropertyTailContext } from './antlr4/ArmLangParser';
+import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext, IdentifierCallContext, PropertyTailContext, ModuleContext } from './antlr4/ArmLangParser';
 import { Dictionary } from 'lodash';
 import { RuleContext, Token } from 'antlr4ts';
 import { inspect } from 'util';
 
-class VisitorContext {
-  public errors: Error[] = [];
+abstract class Scope {
   public inputs: Dictionary<string> = {};
-  public identifiers: Dictionary<RuleContext> = {};
-  public dependencies: Dictionary<string[]> = {};
+  public identifiers: Dictionary<Token> = {};
+}
+
+class GlobalScope extends Scope {
+  public errors: Error[] = [];
+  public modules: Dictionary<ModuleScope> = {};
+}
+
+class ModuleScope extends Scope {
 }
 
 abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> implements ArmLangVisitor<void> {
-  constructor(context: VisitorContext) {
+  constructor(globalScope: GlobalScope) {
     super();
-    this.context = context;
+    this.globalScope = globalScope;
   }
 
-  protected context: VisitorContext;
+  protected globalScope: GlobalScope;
 
   defaultResult(): void { }
 
   protected addError(message: string, token: Token) {
     const error = new Error(`[${token.line}:${token.charPositionInLine}] ${message}`);
-    this.context.errors.push(error);
+    this.globalScope.errors.push(error);
   }
 }
 
 class ScopePopulatorVisitor extends AbstractArmVisitor {
+  private currentScope: Scope = this.globalScope;
+
+  visitModule(ctx: ModuleContext) {
+    const identifier = ctx.Identifier().text;
+    if (this.currentScope.identifiers[identifier]) {
+      this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier().symbol);
+    }
+
+    const oldScope = this.currentScope;
+    
+    const moduleScope = new ModuleScope();
+    this.globalScope.modules[identifier] = moduleScope;
+    this.currentScope = moduleScope;
+
+    this.visitChildren(ctx);
+
+    this.currentScope = oldScope;
+  }
+
   visitResource(ctx: ResourceContext) {
     this.visitChildren(ctx);
 
     const identifier = ctx.Identifier(1).text;
 
-    if (this.context.identifiers[identifier]) {
+    if (this.currentScope.identifiers[identifier]) {
       this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier(1).symbol);
     }
 
-    this.context.identifiers[identifier] = ctx;
+    this.currentScope.identifiers[identifier] = ctx.Identifier(1).symbol;
   }
 
   visitInputDecl(ctx: InputDeclContext) {
     this.visitChildren(ctx);
 
     const identifier = ctx.Identifier().text;
-    if (this.context.identifiers[identifier]) {
+    if (this.currentScope.identifiers[identifier]) {
       this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier().symbol);
     }
 
-    this.context.identifiers[identifier] = ctx;
-    this.context.inputs[identifier] = ctx.type().text;
+    this.currentScope.identifiers[identifier] = ctx.Identifier().symbol;
+    this.currentScope.inputs[identifier] = ctx.type().text;
   }
 
   visitType(ctx: TypeContext) {
@@ -72,25 +97,25 @@ class ScopePopulatorVisitor extends AbstractArmVisitor {
 }
 
 class ScopeCheckVisitor extends AbstractArmVisitor {
-  private currentScope: string = '';
-  
-  visitResource(ctx: ResourceContext) {
-    this.currentScope = ctx.getChild(3).text;
+  private currentScope: Scope = this.globalScope;
+
+  visitModule(ctx: ModuleContext) {
+    const identifier = ctx.Identifier().text;
+    const oldScope = this.currentScope;
+    
+    this.currentScope = this.globalScope.modules[identifier];
+
+    this.visitChildren(ctx);
+
+    this.currentScope = oldScope;
   }
 
   visitIdentifierCall(ctx: IdentifierCallContext) {
     this.visitChildren(ctx);
 
     const identifier = ctx.Identifier();
-    if (!this.context.identifiers[identifier.text]) {
+    if (!this.currentScope.identifiers[identifier.text]) {
       this.addError(`Unrecognized identifier '${identifier}'`, identifier.symbol);
-    }
-
-    if (!this.context.dependencies[this.currentScope]) {
-      this.context.dependencies[this.currentScope] = [];
-    }
-    if (this.context.dependencies[this.currentScope].indexOf(identifier.text) < 0) {
-      this.context.dependencies[this.currentScope].push(identifier.text);
     }
   }
 }
@@ -226,7 +251,7 @@ class ArmAstVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisi
 
   visitPropertyTail(ctx: PropertyTailContext): Ast {
     const propertyTail = ctx.propertyTail();
-    const parentCtx = ctx.identifierCall() || ctx.functionCall();
+    const parentCtx = ctx.propertyCall() || ctx.functionCall();
 
     if (!parentCtx) {
       throw new Error('Parsing failed: Unable to find parent');
@@ -247,20 +272,20 @@ class ArmAstVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisi
 }
 
 export function visit(context: ProgramContext) {
-  const visitorContext = new VisitorContext();
+  const scope = new GlobalScope();
   const visitors: AbstractArmVisitor[] = [
-    new ScopePopulatorVisitor(visitorContext),
-    new ScopeCheckVisitor(visitorContext),
+    new ScopePopulatorVisitor(scope),
+    new ScopeCheckVisitor(scope),
   ];
 
   for (const visitor of visitors) {
     context.accept(visitor);
-    if (visitorContext.errors.length > 0) {
-      for (const error of visitorContext.errors) {
+    if (scope.errors.length > 0) {
+      for (const error of scope.errors) {
         console.error(error.message);
       }
 
-      throw new Error(`Parsing failed: \n${visitorContext.errors.map(e => e.message).join('\n')}`);
+      throw new Error(`Parsing failed: \n${scope.errors.map(e => e.message).join('\n')}`);
     }
   }
 

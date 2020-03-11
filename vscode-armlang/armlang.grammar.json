@@ -16,10 +16,10 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.armlang",
-				"match": "\\b(resource|input|output|for|in|if|else)\\b"
+				"match": "\\b(resource|module|export|input|output|for|in|if|else)\\b"
 			}, {
 				"name": "keyword.bundle.armlang",
-				"match": "\\b(azrm|module)\\b"
+				"match": "\\b(azrm)\\b"
 			}, {
 				"name": "keyword.type.armlang",
 				"match": "\\b(string|securestring|int|bool|object|array)\\b"

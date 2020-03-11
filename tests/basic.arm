@@ -46,4 +46,18 @@ resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
   }
 }
 
+// modules are ignored for now, but note that identifier clashes (redefining inputs or resources) are allowed due to scoping
+module testModule {
+  input location string
+  input namePrefix string
+
+  resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
+    name: concat(namePrefix, '-pip')
+    location: location
+    properties: {
+    publicIPAllocationMethod: 'Dynamic'
+    }
+  }
+}
+
 output nicResourceId resourceId(myNic)

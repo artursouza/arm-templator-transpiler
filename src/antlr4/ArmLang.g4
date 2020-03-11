@@ -1,7 +1,7 @@
 grammar ArmLang;
 
 program
-    : (section)*
+    : (section | module)*
     ;
 
 section
@@ -22,6 +22,10 @@ resource
     : 'resource' Identifier String Identifier object
     ;
 
+module
+    : ('export'|) 'module' Identifier '{' (section)* '}'
+    ;
+
 object
     : '{' objectProperty* '}'
     ;
@@ -40,6 +44,10 @@ functionCall
     ;
 
 identifierCall
+    : Identifier
+    ;
+
+propertyCall
     : Identifier
     ;
 
@@ -79,7 +87,7 @@ property
     ;
 
 propertyTail
-    : '.' identifierCall propertyTail
+    : '.' propertyCall propertyTail
     | '.' functionCall propertyTail
     | /* epsilon */
     ;

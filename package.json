@@ -7,7 +7,7 @@
     "watch": "ts-node tests/watch.ts",
     "clean": "rimraf ./dist",
     "compile": "npm run clean && tsc -p .",
-    "antlr": "antlr4ts -visitor ./src/antlr4/ArmLang.g4",
+    "antlr": "cd src/antlr4 && antlr4ts -visitor ArmLang.g4",
     "test": "mocha -r ts-node/register tests/run.ts"
   },
   "bugs": {

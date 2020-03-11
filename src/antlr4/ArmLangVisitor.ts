@@ -1,4 +1,4 @@
-// Generated from ./src/antlr4/ArmLang.g4 by ANTLR 4.7.3-SNAPSHOT
+// Generated from ArmLang.g4 by ANTLR 4.7.3-SNAPSHOT
 
 
 import { ParseTreeVisitor } from "antlr4ts/tree/ParseTreeVisitor";
@@ -8,11 +8,13 @@ import { SectionContext } from "./ArmLangParser";
 import { InputDeclContext } from "./ArmLangParser";
 import { OutputDeclContext } from "./ArmLangParser";
 import { ResourceContext } from "./ArmLangParser";
+import { ModuleContext } from "./ArmLangParser";
 import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
 import { ArrayContext } from "./ArmLangParser";
 import { FunctionCallContext } from "./ArmLangParser";
 import { IdentifierCallContext } from "./ArmLangParser";
+import { PropertyCallContext } from "./ArmLangParser";
 import { TypeContext } from "./ArmLangParser";
 import { PropertyContext } from "./ArmLangParser";
 import { PropertyTailContext } from "./ArmLangParser";
@@ -62,6 +64,13 @@ export interface ArmLangVisitor<Result> extends ParseTreeVisitor<Result> {
 	visitResource?: (ctx: ResourceContext) => Result;
 
 	/**
+	 * Visit a parse tree produced by `ArmLangParser.module`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitModule?: (ctx: ModuleContext) => Result;
+
+	/**
 	 * Visit a parse tree produced by `ArmLangParser.object`.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -95,6 +104,13 @@ export interface ArmLangVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitIdentifierCall?: (ctx: IdentifierCallContext) => Result;
+
+	/**
+	 * Visit a parse tree produced by `ArmLangParser.propertyCall`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitPropertyCall?: (ctx: PropertyCallContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by `ArmLangParser.type`.
