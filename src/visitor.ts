@@ -1,14 +1,16 @@
-import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst } from './ast';
+import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst, AccessAst } from './ast';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { ArmLangVisitor } from './antlr4/ArmLangVisitor';
-import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext } from './antlr4/ArmLangParser';
+import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext, IdentifierCallContext, PropertyTailContext } from './antlr4/ArmLangParser';
 import { Dictionary } from 'lodash';
 import { RuleContext, Token } from 'antlr4ts';
+import { inspect } from 'util';
 
 class VisitorContext {
   public errors: Error[] = [];
   public inputs: Dictionary<string> = {};
   public identifiers: Dictionary<RuleContext> = {};
+  public dependencies: Dictionary<string[]> = {};
 }
 
 abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> implements ArmLangVisitor<void> {
@@ -70,14 +72,25 @@ class ScopePopulatorVisitor extends AbstractArmVisitor {
 }
 
 class ScopeCheckVisitor extends AbstractArmVisitor {
-  visitProperty(ctx: PropertyContext) {
+  private currentScope: string = '';
+  
+  visitResource(ctx: ResourceContext) {
+    this.currentScope = ctx.getChild(3).text;
+  }
+
+  visitIdentifierCall(ctx: IdentifierCallContext) {
     this.visitChildren(ctx);
 
     const identifier = ctx.Identifier();
-    if (identifier) {
-      if (!this.context.identifiers[identifier.text]) {
-        this.addError(`Unrecognized identifier '${identifier}'`, identifier.symbol);
-      }
+    if (!this.context.identifiers[identifier.text]) {
+      this.addError(`Unrecognized identifier '${identifier}'`, identifier.symbol);
+    }
+
+    if (!this.context.dependencies[this.currentScope]) {
+      this.context.dependencies[this.currentScope] = [];
+    }
+    if (this.context.dependencies[this.currentScope].indexOf(identifier.text) < 0) {
+      this.context.dependencies[this.currentScope].push(identifier.text);
     }
   }
 }
@@ -169,7 +182,20 @@ class ArmAstVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisi
       return new StringAst(stringText);
     }
 
-    const identifierText = ctx.Identifier()?.text;
+    const propertyTail = ctx.propertyTail();
+    if (propertyTail && propertyTail.childCount > 0) {
+      const parentCtx = ctx.identifierCall() || ctx.functionCall();
+
+      if (!parentCtx) {
+        throw new Error('Parsing failed: Unable to find parent');
+      }
+
+      const child = this.visit(propertyTail);
+      const parent = this.visit(parentCtx);
+      return new AccessAst(parent, child);
+    }
+    
+    const identifierText = ctx.identifierCall()?.Identifier().text;
     if (identifierText !== undefined) {
       return new IdentifierAst(identifierText);
     }
@@ -192,6 +218,31 @@ class ArmAstVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisi
     const params = ctx.property().map(prop => this.visitProperty(prop));
 
     return new FunctionCallAst(name, params);
+  }
+
+  visitIdentifierCall(ctx: IdentifierCallContext) {
+    return new IdentifierAst(ctx.Identifier().text);
+  }
+
+  visitPropertyTail(ctx: PropertyTailContext): Ast {
+    const propertyTail = ctx.propertyTail();
+    const parentCtx = ctx.identifierCall() || ctx.functionCall();
+
+    if (!parentCtx) {
+      throw new Error('Parsing failed: Unable to find parent');
+    }
+
+    if (!propertyTail) {
+      throw new Error('Parsing failed: unable to find tail');
+    }
+
+    if (propertyTail.childCount === 0) {
+      return this.visit(parentCtx);
+    }
+
+    const child = this.visit(propertyTail);
+    const parent = this.visit(parentCtx);
+    return new AccessAst(parent, child);
   }
 }
 

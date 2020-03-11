@@ -12,8 +12,10 @@ import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
 import { ArrayContext } from "./ArmLangParser";
 import { FunctionCallContext } from "./ArmLangParser";
+import { IdentifierCallContext } from "./ArmLangParser";
 import { TypeContext } from "./ArmLangParser";
 import { PropertyContext } from "./ArmLangParser";
+import { PropertyTailContext } from "./ArmLangParser";
 
 
 /**
@@ -88,6 +90,13 @@ export interface ArmLangVisitor<Result> extends ParseTreeVisitor<Result> {
 	visitFunctionCall?: (ctx: FunctionCallContext) => Result;
 
 	/**
+	 * Visit a parse tree produced by `ArmLangParser.identifierCall`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitIdentifierCall?: (ctx: IdentifierCallContext) => Result;
+
+	/**
 	 * Visit a parse tree produced by `ArmLangParser.type`.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -100,5 +109,12 @@ export interface ArmLangVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitProperty?: (ctx: PropertyContext) => Result;
+
+	/**
+	 * Visit a parse tree produced by `ArmLangParser.propertyTail`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitPropertyTail?: (ctx: PropertyTailContext) => Result;
 }
 

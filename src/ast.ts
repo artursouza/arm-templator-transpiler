@@ -115,3 +115,13 @@ export class ObjectPropertyAst extends Ast {
     this.value = value;
   }
 }
+
+export class AccessAst extends Ast {
+  parent: Ast;
+  child: Ast;
+  constructor(parent: Ast, child: Ast) {
+    super();
+    this.parent = parent;
+    this.child = child;
+  }
+}

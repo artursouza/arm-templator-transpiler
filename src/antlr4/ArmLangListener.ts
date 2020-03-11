@@ -12,8 +12,10 @@ import { ObjectContext } from "./ArmLangParser";
 import { ObjectPropertyContext } from "./ArmLangParser";
 import { ArrayContext } from "./ArmLangParser";
 import { FunctionCallContext } from "./ArmLangParser";
+import { IdentifierCallContext } from "./ArmLangParser";
 import { TypeContext } from "./ArmLangParser";
 import { PropertyContext } from "./ArmLangParser";
+import { PropertyTailContext } from "./ArmLangParser";
 
 
 /**
@@ -121,6 +123,17 @@ export interface ArmLangListener extends ParseTreeListener {
 	exitFunctionCall?: (ctx: FunctionCallContext) => void;
 
 	/**
+	 * Enter a parse tree produced by `ArmLangParser.identifierCall`.
+	 * @param ctx the parse tree
+	 */
+	enterIdentifierCall?: (ctx: IdentifierCallContext) => void;
+	/**
+	 * Exit a parse tree produced by `ArmLangParser.identifierCall`.
+	 * @param ctx the parse tree
+	 */
+	exitIdentifierCall?: (ctx: IdentifierCallContext) => void;
+
+	/**
 	 * Enter a parse tree produced by `ArmLangParser.type`.
 	 * @param ctx the parse tree
 	 */
@@ -141,5 +154,16 @@ export interface ArmLangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitProperty?: (ctx: PropertyContext) => void;
+
+	/**
+	 * Enter a parse tree produced by `ArmLangParser.propertyTail`.
+	 * @param ctx the parse tree
+	 */
+	enterPropertyTail?: (ctx: PropertyTailContext) => void;
+	/**
+	 * Exit a parse tree produced by `ArmLangParser.propertyTail`.
+	 * @param ctx the parse tree
+	 */
+	exitPropertyTail?: (ctx: PropertyTailContext) => void;
 }
 
