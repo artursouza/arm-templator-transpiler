@@ -417,14 +417,30 @@ class TemplateGenerationVisitor extends AbstractArmVisitor {
       throw new Error(`Provider ${provider} is not supported in this prototype!`);
     }
 
+    const identifier = ctx.Identifier(1).text;
+    let dependsOn = undefined;
+    for (const resource of Object.keys(this.resources)) {
+      const resourceDependencies = this.globalScope.dependencies[resource];
+      if (resourceDependencies && resourceDependencies.indexOf(identifier) !== -1) {
+        const resourceIdExpression = `[resourceId(${this.unescapeExpression(this.resources[resource].type)}, ${this.unescapeExpression(this.resources[resource].name)})]`;
+        if (!dependsOn) {
+          dependsOn = [];
+        }
+        dependsOn.push(resourceIdExpression);
+
+        //TODO detect indirect dependencies (through variable)
+      }
+    }
+
+    const resourceBody = this.visitObject(ctx.object());
+
     const { apiVersion, fullType } = parseAzrmTypeString(parseAstString(ctx.String().text));
     const resource = {
-      apiVersion: apiVersion,
+      apiVersion,
       type: fullType,
-      ...this.visitObject(ctx.object()),
+      ...resourceBody,
+      dependsOn,
     };
-    
-    // TODO add dependsOn
 
     this.resources[ctx.Identifier(1).text] = resource;
   }

@@ -49,7 +49,10 @@
             }
           }
         ]
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
+      ]
     }
   ],
   "outputs": {
