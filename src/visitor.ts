@@ -1,9 +1,8 @@
-import { ResourceAst, IdentifierAst, ObjectAst, ObjectPropertyAst, NumberAst, StringAst, ArrayAst, FunctionCallAst, ProgramAst, Ast, TypeAst, InputDeclAst, OutputDeclAst, AccessAst } from './ast';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { ArmLangVisitor } from './antlr4/ArmLangVisitor';
 import { ProgramContext, SectionContext, ResourceContext, ObjectContext, ObjectPropertyContext, PropertyContext, ArrayContext, FunctionCallContext, InputDeclContext, OutputDeclContext, TypeContext, IdentifierCallContext, PropertyTailContext, ModuleContext, VariableContext } from './antlr4/ArmLangParser';
 import { Dictionary } from 'lodash';
-import { RuleContext, Token } from 'antlr4ts';
+import { RuleContext, Token, ConsoleErrorListener } from 'antlr4ts';
 import { inspect } from 'util';
 
 abstract class Scope {
@@ -243,163 +242,319 @@ class DependencyBuilderVisitor extends AbstractArmVisitor {
   }
 }
 
-class ArmAstVisitor extends AbstractParseTreeVisitor<Ast> implements ArmLangVisitor<Ast> {
-  defaultResult(): number {
-    return 0
+export interface TemplateWriter {
+  write(template: any): void;
+}
+
+const providerLookup: Dictionary<string> = {
+  network: 'Microsoft.Network',
+  compute: 'Microsoft.Compute',
+  storage: 'Microsoft.Storage',
+}
+
+function parseAzrmTypeString(type: string) {
+  let provider = type.split('/')[0];
+  if (providerLookup[provider]) {
+    provider = providerLookup[provider];
+  }
+
+  let apiVersion = type.split('@')[1];
+  let fullType = `${provider}/${type.split('/')[1].split('@')[0]}`
+
+  return {
+    apiVersion,
+    fullType,
+  };
+}
+
+function parseAstString(input: string) {
+  return input
+    .substring(1, input.length - 1)
+    .replace(/\\\'/g, '\'')
+    .replace(/\\\\/g, '\\');
+}
+
+class TemplateGenerationVisitor extends AbstractArmVisitor {
+  constructor(globalScope: GlobalScope, writer: TemplateWriter) {
+    super(globalScope);
+    this.writer = writer;
+  }
+
+  private writer: TemplateWriter;
+  private variables: Dictionary<any> = {};
+  private parameters: Dictionary<any> = {};
+  private resources: Dictionary<any> = {};
+  private outputs: Dictionary<any> = {};
+  
+  visitInDependencyOrder(scope: Scope, resourceCtxts: ResourceContext[], variableCtxts: VariableContext[]) {
+    // important to visit in dependency order so that we don't end up with 
+    // references that can't be evaluated.
+    const dependencyCount: Dictionary<number> = {};
+
+    const resourcesByIdentifier: Dictionary<ResourceContext> = {};
+    for (const resourceCtx of resourceCtxts) {
+      if (resourceCtx) {
+        resourcesByIdentifier[resourceCtx.Identifier(1).text] = resourceCtx;
+        dependencyCount[resourceCtx.Identifier(1).text] = 0;
+      }
+    }
+
+    const variablesByIdentifier: Dictionary<VariableContext> = {};
+    for (const variableCtx of variableCtxts) {
+      if (variableCtx) {
+        variablesByIdentifier[variableCtx.Identifier().text] = variableCtx;
+        dependencyCount[variableCtx.Identifier().text] = 0;
+      }
+    }
+
+    for (const dependency of Object.keys(scope.dependencies)) {
+      if (!(resourcesByIdentifier[dependency] || variablesByIdentifier[dependency])) {
+        // dependencies also includes inputs - we're only interested in variable and resource
+        // dependencies to build the dependency graph
+        continue;
+      }
+
+      for (const dependent of scope.dependencies[dependency]) {
+        if (resourcesByIdentifier[dependent] || variablesByIdentifier[dependent]) {
+          dependencyCount[dependent] += 1;
+        }
+      }
+    }
+
+    const dependencyOrder: string[] = [];
+    do {
+      const orderedKeys = Object.keys(dependencyCount);
+      orderedKeys.sort();
+
+      for (const dependency of orderedKeys) {
+        if (dependencyCount[dependency] === 0) {
+          dependencyOrder.push(dependency);
+          delete dependencyCount[dependency];
+
+          const dependents = scope.dependencies[dependency] || [];
+          for (const dependent of dependents) {
+            if (dependencyCount[dependent]) {
+              dependencyCount[dependent] -= 1;
+            }
+          }
+        }
+      }
+    } while (Object.keys(dependencyCount).length > 0)
+
+    for (const dependency of dependencyOrder) {
+      const resourceCtx = resourcesByIdentifier[dependency];
+      if (resourceCtx) {
+        this.visit(resourceCtx);
+        continue;
+      }
+      
+      const variableCtx = variablesByIdentifier[dependency];
+      if (variableCtx) {
+        this.visit(variableCtx);
+        continue;
+      }
+      
+      throw new Error(`Parsing failed: Unresolvable dependency ${dependency}`);
+    }
   }
 
   visitProgram(ctx: ProgramContext) {
-    const inputs = [];
-    const resources = [];
-    const outputs = [];
+    const inputCtxts = ctx.section().map(s => s.inputDecl()).filter(x => x !== undefined) as InputDeclContext[];
+    const outputCtxts = ctx.section().map(s => s.outputDecl()).filter(x => x !== undefined) as OutputDeclContext[];
+    const resourceCtxts = ctx.section().map(s => s.resource()).filter(x => x != undefined) as ResourceContext[];
+    const variableCtxts = ctx.section().map(s => s.variable()).filter(x => x !== undefined) as VariableContext[];
 
-    for (const child of ctx.children || []) {
-      const section = this.visit(child);
-
-      if (section instanceof InputDeclAst) {
-        inputs.push(section);
-        continue;
-      }
-
-      if (section instanceof ResourceAst) {
-        resources.push(section);
-        continue;
-      }
-
-      if (section instanceof OutputDeclAst) {
-        outputs.push(section);
-        continue;
-      }
+    for (const inputCtx of inputCtxts) {
+      this.visitInputDecl(inputCtx);
     }
 
-    return new ProgramAst(inputs, resources, outputs);
+    this.visitInDependencyOrder(this.globalScope, resourceCtxts, variableCtxts);
+
+    for (const outputCtx of outputCtxts) {
+      this.visitOutputDecl(outputCtx);
+    }
+
+    // TODO visit modules
+
+    const template = {
+      $schema: 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#',
+      contentVersion: '1.0.0.0',
+      parameters: this.parameters,
+      resources: Object.keys(this.resources).map(k => this.resources[k]),
+      outputs: this.outputs,
+    };
+
+    this.writer.write(template);
   }
-  
-  visitSection(ctx: SectionContext) {
-    return this.visit(ctx.getChild(0));
+
+  visitVariable(ctx: VariableContext) {
+    this.variables[ctx.Identifier().text] = this.visitTopLevelProperty(ctx.property());
   }
 
   visitInputDecl(ctx: InputDeclContext) {
-    const name = new IdentifierAst(ctx.Identifier().text);
-    const type = this.visitType(ctx.type());
+    const name = ctx.Identifier().text;
+    const type = ctx.type().text;
 
-    return new InputDeclAst(name, type);
+    this.parameters[name] = {
+      type: type,
+    };
   }
 
   visitOutputDecl(ctx: OutputDeclContext) {
-    const name = new IdentifierAst(ctx.Identifier().text);
-    const value = this.visitProperty(ctx.property());
+    const name = ctx.Identifier().text;
+    const value = this.visitTopLevelProperty(ctx.property());
 
-    return new OutputDeclAst(name, value);
+    this.outputs[name] = {
+      // TODO add other types for output
+      type: 'string',
+      value: value,
+    };
   }
-  
+
   visitResource(ctx: ResourceContext) {
-    const provider = new IdentifierAst(ctx.getChild(1).text);
-    const type = new StringAst(ctx.String().toString());
-    const name = new IdentifierAst(ctx.getChild(3).text);
-    const object = this.visit(ctx.getChild(4)) as ObjectAst;
+    const provider = ctx.Identifier(0).text;
+    if (provider !== 'azrm') {
+      throw new Error(`Provider ${provider} is not supported in this prototype!`);
+    }
 
-    return new ResourceAst(provider, type, name, object);
-  }
+    const { apiVersion, fullType } = parseAzrmTypeString(parseAstString(ctx.String().text));
+    const resource = {
+      apiVersion: apiVersion,
+      type: fullType,
+      ...this.visitObject(ctx.object()),
+    };
+    
+    // TODO add dependsOn
 
-  visitType(ctx: TypeContext) {
-    return new TypeAst(ctx.text);
+    this.resources[ctx.Identifier(1).text] = resource;
   }
 
   visitObject(ctx: ObjectContext) {
-    const properties = ctx.objectProperty().map(prop => this.visitObjectProperty(prop));
+    const output: Dictionary<any> = {};
+    const properties = ctx.objectProperty();
+    for (const property of properties) {
+      const name = property.Identifier().text;
+      const value = this.visitTopLevelProperty(property.property());
 
-    return new ObjectAst(properties);
-  }
-
-  visitObjectProperty(ctx: ObjectPropertyContext) {
-    const name = new IdentifierAst(ctx.Identifier().text);
-    const prop = this.visitProperty(ctx.property());
-    
-    return new ObjectPropertyAst(name, prop);
-  }
-
-  visitProperty(ctx: PropertyContext) {
-    const numberText = ctx.Number()?.text;
-    if (numberText !== undefined) {
-      return new NumberAst(parseInt(numberText));
-    }
-
-    const stringText = ctx.String()?.text;
-    if (stringText !== undefined) {
-      return new StringAst(stringText);
-    }
-
-    const propertyTail = ctx.propertyTail();
-    if (propertyTail && propertyTail.childCount > 0) {
-      const parentCtx = ctx.identifierCall() || ctx.functionCall();
-
-      if (!parentCtx) {
-        throw new Error('Parsing failed: Unable to find parent');
-      }
-
-      const child = this.visit(propertyTail);
-      const parent = this.visit(parentCtx);
-      return new AccessAst(parent, child);
+      output[name] = value;
     }
     
-    const identifierText = ctx.identifierCall()?.Identifier().text;
-    if (identifierText !== undefined) {
-      return new IdentifierAst(identifierText);
-    }
-
-    return this.visit(ctx.getChild(0));
+    return output;
   }
 
   visitArray(ctx: ArrayContext) {
-    const output = [];
-
-    for (const prop of ctx.property() || []) {
-      output.push(this.visit(prop));
-    }
-
-    return new ArrayAst(output);
+    return ctx.property().map(p => this.visitTopLevelProperty(p));
   }
 
-  visitFunctionCall(ctx: FunctionCallContext) {
-    const name = new IdentifierAst(ctx.Identifier().text);
-    const params = ctx.property().map(prop => this.visitProperty(prop));
+  visitTopLevelProperty(ctx: PropertyContext): any {
+    const output = this.visitProperty(ctx);
+    if (ctx.identifierCall() || ctx.functionCall()) {
+      // TODO proper escaping
+      return `[${output}]`;
+    }
 
-    return new FunctionCallAst(name, params);
+    return output;
   }
 
-  visitIdentifierCall(ctx: IdentifierCallContext) {
-    return new IdentifierAst(ctx.Identifier().text);
+  visitFunctionParamProperty(ctx: PropertyContext): any {
+    const output = this.visitProperty(ctx);
+    if (ctx.String()) {
+      // TODO proper escaping
+      return `'${output}'`;
+    }
+
+    return output;
   }
 
-  visitPropertyTail(ctx: PropertyTailContext): Ast {
-    const propertyTail = ctx.propertyTail();
-    const parentCtx = ctx.propertyCall() || ctx.functionCall();
-
-    if (!parentCtx) {
-      throw new Error('Parsing failed: Unable to find parent');
+  unescapeExpression(input: string) {
+    // TODO very hacky - fix this!
+    if (input.length >= 2 && input[0] === '[' && input[input.length -1] === ']') {
+      return input.substring(1, input.length -1);
+    } else {
+      return `'${input}'`
     }
 
-    if (!propertyTail) {
-      throw new Error('Parsing failed: unable to find tail');
+    return input;
+  }
+
+  visitProperty(ctx: PropertyContext): any {
+    const stringText = ctx.String()?.text;
+    if (stringText) {
+      return parseAstString(stringText);
     }
 
-    if (propertyTail.childCount === 0) {
-      return this.visit(parentCtx);
+    const numberText = ctx.Number()?.text;
+    if (numberText) {
+      return parseInt(numberText);
     }
 
-    const child = this.visit(propertyTail);
-    const parent = this.visit(parentCtx);
-    return new AccessAst(parent, child);
+    const arrayCtx = ctx.array();
+    if (arrayCtx) {
+      return this.visitArray(arrayCtx);
+    }
+
+    const objectCtx = ctx.object();
+    if (objectCtx) {
+      return this.visitObject(objectCtx);
+    }
+
+    const identifierCallCtx = ctx.identifierCall();
+    if (identifierCallCtx) {
+      if (this.variables[identifierCallCtx.text]) {
+        return this.variables[identifierCallCtx.text];
+      }
+
+      if (this.parameters[identifierCallCtx.text]) {
+        return `parameters('${identifierCallCtx.text}')`;
+      }
+
+      throw new Error(`Direct references to resources are not yet supported in this prototype!`);
+      // TODO handle functions like .id() here, and property access using reference().
+    }
+
+    const functionCallCtx = ctx.functionCall();
+    if (functionCallCtx) {
+      const functionName = functionCallCtx.Identifier().text;
+      switch (functionName) {
+        case 'resourceId':
+          if (functionCallCtx.property().length !== 1) {
+            throw new Error(`Invalid number of params passed to resourceId function (expecting 1)`)
+          }
+
+          const identifier = functionCallCtx.property(0).identifierCall()?.text;
+          if (!identifier || !this.resources[identifier]) {
+            throw new Error(`Invalid resource passed to resourceId function`);
+          }
+
+          const resource = this.resources[identifier];
+          // todo improve this
+          return `resourceId(${this.unescapeExpression(resource.type)}, ${this.unescapeExpression(resource.name)})`;
+        case 'concat':
+          const evaluatedValues: any[] = [];
+          for (const property of functionCallCtx.property()) {
+            const evaluated = this.visitFunctionParamProperty(property);
+            if (typeof evaluated !== 'string' && typeof evaluated !== 'number' && typeof evaluated !== 'boolean') {
+              throw new Error(`Invalid value passed to concat function`);
+            }
+            evaluatedValues.push(evaluated);
+          }
+          return `concat(${evaluatedValues.join(', ')})`
+      }
+
+      throw new Error(`Function ${functionName} is not supported in this prototype!`);
+    }
+
+    return this.visitChildren(ctx);
   }
 }
 
-export function visit(context: ProgramContext) {
+export function visit(context: ProgramContext, writer: TemplateWriter) {
   const scope = new GlobalScope();
   const visitors: AbstractArmVisitor[] = [
     new ScopePopulatorVisitor(scope),
     new ScopeCheckVisitor(scope),
     new DependencyBuilderVisitor(scope),
+    new TemplateGenerationVisitor(scope, writer),
   ];
 
   for (const visitor of visitors) {
@@ -412,7 +567,4 @@ export function visit(context: ProgramContext) {
       throw new Error(`Parsing failed: \n${scope.errors.map(e => e.message).join('\n')}`);
     }
   }
-
-  const visitor = new ArmAstVisitor();
-  return context.accept(visitor) as ProgramAst;
 }

@@ -1,7 +1,21 @@
 import fs from 'fs';
 import { argv } from 'process';
 import path from 'path';
-import { renderTemplate } from './templatedeployer';
+import { execute } from '../src/execute';
+import { TemplateWriter } from '../src/visitor';
+
+class TemplateFileWriter implements TemplateWriter {
+  private readonly fileName: string;
+
+  constructor(fileName: string) {
+    this.fileName = fileName;
+  }
+
+  write(template: any): void {
+    const templateJson = JSON.stringify(template, null, 2);
+    fs.writeFileSync(this.fileName, templateJson, {encoding:'utf8'});
+  }
+}
 
 if (!argv[2]) {
   throw new Error(`Please supply a file to watch.`);
@@ -17,21 +31,21 @@ const stat = fs.statSync(fileName);
 if (!stat.isFile()) {
   throw new Error(`Unable to watch file ${fileName}.`);
 }
+const writer = new TemplateFileWriter(outputFileName);
 
-recompile(fileName, outputFileName);
+recompile(fileName, writer);
 fs.watchFile(fileName, (cur, prev) => {
-  recompile(fileName, outputFileName);
+  recompile(fileName, writer);
 });
 
-function recompile(inputFile: string, outputFile: string) {
+function recompile(inputFile: string, writer: TemplateWriter) {
   try {
     console.clear();
     console.log('Compiling...');
     const input = fs.readFileSync(inputFile, { encoding: 'utf8' });
 
-    const template = renderTemplate(input);
+    execute(input, writer);
 
-    fs.writeFileSync(outputFile, template, {encoding:'utf8'});
     console.clear();
     console.log('Compiled');
   } catch (e) {

@@ -38,7 +38,7 @@ resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
 */
 
 // this comment should be ignored
-resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
+resource azrm 'network/publicIPAddresses@2019-11-01' myPip {
   name: concat(namePrefix, '-pip')
   location: location
   properties: {

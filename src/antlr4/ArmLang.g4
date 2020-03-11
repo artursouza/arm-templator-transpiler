@@ -6,6 +6,7 @@ program
 
 section
     : resource
+    | variable
     | inputDecl
     | outputDecl
     ;
