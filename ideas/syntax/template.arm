@@ -1,0 +1,48 @@
+input baseNames array
+input location string
+input condition bool
+
+/* Syntax examples.
+Note, we will need to think carefully about for loops and conditionals
+as although they look 'imperative', there are certain concepts that do not
+translate well into declarative code - for example referencing conditionally-deployed resources
+or resources that have been deployed in a loop. */
+
+// for loop
+for baseName in baseNames {
+  resource azrm 'storage/storageAccounts@2015-06-15' loopAccounts {
+    name: concat(baseName, '-sa')
+    location: input.location
+    properties: {
+      accountType: 'Standard_LRS'
+    }
+  }
+}
+
+// string concatenation
+resource azrm 'storage/storageAccounts@2015-06-15' concatAccount {
+  name: '${baseName}-sa'
+  location: input.location
+  properties: {
+    accountType: 'Standard_LRS'
+  }
+}
+
+// conditionals
+if (condition) {
+  resource azrm 'storage/storageAccounts@2015-06-15' ifTrueAccount {
+    name: 'iftrue'
+    location: input.location
+    properties: {
+      accountType: 'Standard_LRS'
+    }
+  }
+} else {
+  resource azrm 'storage/storageAccounts@2015-06-15' ifFalseAccount {
+    name: 'iffalse'
+    location: input.location
+    properties: {
+      accountType: 'Standard_LRS'
+    }
+  }
+}

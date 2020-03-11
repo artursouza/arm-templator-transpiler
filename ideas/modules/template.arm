@@ -13,4 +13,4 @@ resource module './module@vmWithDiags' vmWithDiags {
 }
 
 // module outputs can be accessed
-output diagsUrl vmWithDiags.outputs.blobUrl
+output diagsUrl: vmWithDiags.outputs.blobUrl

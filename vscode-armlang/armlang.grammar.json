@@ -16,7 +16,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.armlang",
-				"match": "\\b(resource|input|output)\\b"
+				"match": "\\b(resource|input|output|for|in|if|else)\\b"
 			}, {
 				"name": "keyword.bundle.armlang",
 				"match": "\\b(azrm|module)\\b"
