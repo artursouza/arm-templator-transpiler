@@ -4,13 +4,6 @@ input string namePrefix
 // distinguish between params and vars?
 // readability - colorization?
 
-// script myScript {
-  // write a script here
-
-  // how do I get outputs?
-// }
-// var myScript.outputs.something
-
 // pass the object name as a displayName in the ARM template
 // could the object be optional?
 resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
@@ -26,7 +19,8 @@ resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
 }
 
 // nicName, potentially, should not be available above this line
-input nicName string
+// input nicName string
+input string nicName
 resource azrm 'network/networkInterfaces@2019-11-01' myNic {
   // should I be able to declare an input here?
 
@@ -79,5 +73,12 @@ module testModule {
     }
   }
 }
+
+// script myScript {
+  // write a script here
+
+  // how do I get outputs?
+// }
+// var myScript.outputs.something
 
 output nicResourceId: resourceId(myNic)
