@@ -7,7 +7,7 @@ export abstract class Scope {
   public inputs: Dictionary<string> = {};
   public resources: string[] = [];
   public identifiers: Dictionary<Token> = {};
-  public dependencies: Dictionary<string[]> = {};
+  public dependencies: Dictionary<DependencyNode> = {};
 }
 
 export class GlobalScope extends Scope {
@@ -24,6 +24,10 @@ export class ModuleScope extends Scope {
   public external: boolean;
 }
 
+export class DependencyNode {
+  public readonly children: Dictionary<DependencyNode> = {};
+}
+
 export abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> implements ArmLangVisitor<void> {
   constructor(globalScope: GlobalScope) {
     super();
@@ -35,8 +39,12 @@ export abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> 
   defaultResult(): void { }
 
   protected addError(message: string, token: Token) {
-    const error = new Error(`[${token.line}:${token.charPositionInLine}] ${message}`);
+    const error = this.buildError(message, token);
     this.globalScope.errors.push(error);
+  }
+
+  protected buildError(message: string, token: Token) {
+    return new Error(`[${token.line}:${token.charPositionInLine}] ${message}`);
   }
 }
 

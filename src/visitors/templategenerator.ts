@@ -1,6 +1,7 @@
 import { ProgramContext, ResourceContext, ObjectContext, PropertyContext, ArrayContext, InputDeclContext, OutputDeclContext, VariableContext } from '../antlr4/ArmLangParser';
-import { Dictionary } from 'lodash';
+import { Dictionary, keyBy, uniq } from 'lodash';
 import { AbstractArmVisitor, Scope, GlobalScope, TemplateWriter } from './common';
+import { getDependencyOrder } from './DependencyBuilder';
 
 const providerLookup: Dictionary<string> = {
   network: 'Microsoft.Network',
@@ -30,6 +31,22 @@ function parseAstString(input: string) {
     .replace(/\\\\/g, '\\');
 }
 
+function findResourceDependencies(identifier: string, scope: Scope) {
+  const dependencies = scope.dependencies[identifier].children;
+
+  const resourceDependencies: string[] = [];
+  for (const child of Object.keys(dependencies)) {
+    if (scope.resources.indexOf(child) !== -1) {
+      resourceDependencies.push(child);
+    } else {
+      const childDependencies = findResourceDependencies(child, scope);
+      resourceDependencies.push(...childDependencies);
+    }
+  }
+
+  return uniq(resourceDependencies);
+}
+
 export class TemplateGeneratorVisitor extends AbstractArmVisitor {
   constructor(globalScope: GlobalScope, writer: TemplateWriter) {
     super(globalScope);
@@ -45,57 +62,11 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
   visitInDependencyOrder(scope: Scope, resourceCtxts: ResourceContext[], variableCtxts: VariableContext[]) {
     // important to visit in dependency order so that we don't end up with 
     // references that can't be evaluated.
-    const dependencyCount: Dictionary<number> = {};
 
-    const resourcesByIdentifier: Dictionary<ResourceContext> = {};
-    for (const resourceCtx of resourceCtxts) {
-      if (resourceCtx) {
-        resourcesByIdentifier[resourceCtx.Identifier(1).text] = resourceCtx;
-        dependencyCount[resourceCtx.Identifier(1).text] = 0;
-      }
-    }
+    const resourcesByIdentifier = keyBy(resourceCtxts, ctx => ctx.Identifier(1).text);
+    const variablesByIdentifier = keyBy(variableCtxts, ctx => ctx.Identifier().text);
+    const dependencyOrder = getDependencyOrder(scope.dependencies);
 
-    const variablesByIdentifier: Dictionary<VariableContext> = {};
-    for (const variableCtx of variableCtxts) {
-      if (variableCtx) {
-        variablesByIdentifier[variableCtx.Identifier().text] = variableCtx;
-        dependencyCount[variableCtx.Identifier().text] = 0;
-      }
-    }
-
-    for (const dependency of Object.keys(scope.dependencies)) {
-      if (!(resourcesByIdentifier[dependency] || variablesByIdentifier[dependency])) {
-        // dependencies also includes inputs - we're only interested in variable and resource
-        // dependencies to build the dependency graph
-        continue;
-      }
-
-      for (const dependent of scope.dependencies[dependency]) {
-        if (resourcesByIdentifier[dependent] || variablesByIdentifier[dependent]) {
-          dependencyCount[dependent] += 1;
-        }
-      }
-    }
-
-    const dependencyOrder: string[] = [];
-    do {
-      const orderedKeys = Object.keys(dependencyCount);
-      orderedKeys.sort();
-
-      for (const dependency of orderedKeys) {
-        if (dependencyCount[dependency] === 0) {
-          dependencyOrder.push(dependency);
-          delete dependencyCount[dependency];
-
-          const dependents = scope.dependencies[dependency] || [];
-          for (const dependent of dependents) {
-            if (dependencyCount[dependent]) {
-              dependencyCount[dependent] -= 1;
-            }
-          }
-        }
-      }
-    } while (Object.keys(dependencyCount).length > 0)
 
     for (const dependency of dependencyOrder) {
       const resourceCtx = resourcesByIdentifier[dependency];
@@ -109,8 +80,6 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
         this.visit(variableCtx);
         continue;
       }
-      
-      throw new Error(`Parsing failed: Unresolvable dependency ${dependency}`);
     }
   }
 
@@ -174,18 +143,11 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     }
 
     const identifier = ctx.Identifier(1).text;
-    let dependsOn = undefined;
-    for (const resource of Object.keys(this.resources)) {
-      const resourceDependencies = this.globalScope.dependencies[resource];
-      if (resourceDependencies && resourceDependencies.indexOf(identifier) !== -1) {
-        const resourceIdExpression = `[resourceId(${this.unescapeExpression(this.resources[resource].type)}, ${this.unescapeExpression(this.resources[resource].name)})]`;
-        if (!dependsOn) {
-          dependsOn = [];
-        }
-        dependsOn.push(resourceIdExpression);
-
-        //TODO detect indirect dependencies (through variable)
-      }
+    const resourceDependencies = findResourceDependencies(identifier, this.globalScope);
+    const dependsOn = [];
+    for (const resource of resourceDependencies) {
+      const resourceIdExpression = `[resourceId(${this.unescapeExpression(this.resources[resource].type)}, ${this.unescapeExpression(this.resources[resource].name)})]`;
+      dependsOn.push(resourceIdExpression);
     }
 
     const resourceBody = this.visitObject(ctx.object());
@@ -195,7 +157,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       apiVersion,
       type: fullType,
       ...resourceBody,
-      dependsOn,
+      dependsOn: dependsOn.length > 0 ? dependsOn : undefined,
     };
 
     this.resources[ctx.Identifier(1).text] = resource;

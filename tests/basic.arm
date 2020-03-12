@@ -20,13 +20,15 @@ resource azrm 'network/networkInterfaces@2019-11-01' myNic {
     ipConfigurations: [{
       name: 'myConfig'
       properties: {
-        subnet: {
-          id: resourceId(mySubnet)
-        }
+        subnet: subnetReference
         privateIPAllocationMethod: 'Dynamic'
       }
     }]
   }
+}
+
+variable subnetReference {
+  id: resourceId(mySubnet)
 }
 
 /* this block comment should be ignored
