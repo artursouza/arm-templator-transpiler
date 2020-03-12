@@ -31,6 +31,24 @@ function parseAstString(input: string) {
     .replace(/\\\\/g, '\\');
 }
 
+function toParamString(input: string) {
+  const output = input
+    .replace(/\'/g, '\'\'');
+
+  return `'${output}'`;
+}
+
+function toExpressionString(input: string) {
+  if (!input.startsWith) {
+    throw input;
+  }
+  if (input.startsWith('[')) {
+    return '[' + input;
+  }
+
+  return input;
+}
+
 function findResourceDependencies(identifier: string, scope: Scope) {
   const dependencies = scope.dependencies[identifier].children;
 
@@ -182,9 +200,12 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
 
   visitTopLevelProperty(ctx: PropertyContext): any {
     const output = this.visitProperty(ctx);
-    if (typeof output === 'string' && (ctx.identifierCall() || ctx.functionCall())) {
-      // TODO proper escaping
-      return `[${output}]`;
+    if (typeof output === 'string') {
+      if (ctx.identifierCall() || ctx.functionCall()) {
+        return `[${output}]`;
+      }
+
+      return toExpressionString(output);
     }
 
     return output;
@@ -193,8 +214,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
   visitFunctionParamProperty(ctx: PropertyContext): any {
     const output = this.visitProperty(ctx);
     if (ctx.String()) {
-      // TODO proper escaping
-      return `'${output}'`;
+      return toParamString(output);
     }
 
     return output;
@@ -205,10 +225,8 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     if (input.length >= 2 && input[0] === '[' && input[input.length -1] === ']') {
       return input.substring(1, input.length -1);
     } else {
-      return `'${input}'`
+      return toParamString(input);
     }
-
-    return input;
   }
 
   visitProperty(ctx: PropertyContext): any {
