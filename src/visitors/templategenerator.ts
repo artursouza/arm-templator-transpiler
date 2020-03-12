@@ -24,6 +24,19 @@ function parseAzrmTypeString(type: string) {
   };
 }
 
+function formatFunction(name: string, params: any[], isTopLevel: boolean) {
+  const paramValues = [];
+  for (const param of params) {
+    if (typeof param === 'string' || typeof param === 'number' || typeof param === 'boolean') {
+      paramValues.push(param);
+    } else {
+      throw new Error(`Invalid value passed to concat function`);
+    }
+  }
+  const output = `${name}(${paramValues.join(', ')})`;
+  return isTopLevel ? `[${output}]` : output;
+}
+
 function parseAstString(input: string) {
   return input
     .substring(1, input.length - 1)
@@ -39,9 +52,6 @@ function toParamString(input: string) {
 }
 
 function toExpressionString(input: string) {
-  if (!input.startsWith) {
-    throw input;
-  }
   if (input.startsWith('[')) {
     return '[' + input;
   }
@@ -164,7 +174,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     const resourceDependencies = findResourceDependencies(identifier, this.globalScope);
     const dependsOn = [];
     for (const resource of resourceDependencies) {
-      const resourceIdExpression = `[resourceId(${this.unescapeExpression(this.resources[resource].type)}, ${this.unescapeExpression(this.resources[resource].name)})]`;
+      const resourceIdExpression = formatFunction('resourceId', [this.unescapeExpression(this.resources[resource].type), this.unescapeExpression(this.resources[resource].name)], true);
       dependsOn.push(resourceIdExpression);
     }
 
@@ -198,19 +208,6 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     return ctx.property().map(p => this.visitTopLevelProperty(p));
   }
 
-  visitTopLevelProperty(ctx: PropertyContext): any {
-    const output = this.visitProperty(ctx);
-    if (typeof output === 'string') {
-      if (ctx.identifierCall() || ctx.functionCall()) {
-        return `[${output}]`;
-      }
-
-      return toExpressionString(output);
-    }
-
-    return output;
-  }
-
   visitFunctionParamProperty(ctx: PropertyContext): any {
     const output = this.visitProperty(ctx);
     if (ctx.String()) {
@@ -229,10 +226,19 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     }
   }
 
+  visitTopLevelProperty(ctx: PropertyContext): any {
+    return this.visitPropertyInternal(ctx, true);
+  }
+
   visitProperty(ctx: PropertyContext): any {
+    return this.visitPropertyInternal(ctx, false);
+  }
+
+  visitPropertyInternal(ctx: PropertyContext, isTopLevel: boolean): any {
     const stringText = ctx.String()?.text;
     if (stringText) {
-      return parseAstString(stringText);
+      const output = parseAstString(stringText);
+      return isTopLevel ? toExpressionString(output) : output;
     }
 
     const numberText = ctx.Number()?.text;
@@ -257,7 +263,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       }
 
       if (this.parameters[identifierCallCtx.text]) {
-        return `parameters('${identifierCallCtx.text}')`;
+        return formatFunction('parameters', [toParamString(identifierCallCtx.text)], isTopLevel);
       }
 
       throw new Error(`Direct references to resources are not yet supported in this prototype!`);
@@ -279,19 +285,13 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
           }
 
           const resource = this.resources[identifier];
-          // todo improve this
-          return `resourceId(${this.unescapeExpression(resource.type)}, ${this.unescapeExpression(resource.name)})`;
-        default:
-          const evaluatedValues: any[] = [];
-          for (const property of functionCallCtx.property()) {
-            const evaluated = this.visitFunctionParamProperty(property);
-            if (typeof evaluated !== 'string' && typeof evaluated !== 'number' && typeof evaluated !== 'boolean') {
-              throw new Error(`Invalid value passed to concat function`);
-            }
-            evaluatedValues.push(evaluated);
-          }
 
-          return `${functionName}(${evaluatedValues.join(', ')})`
+          // TODO improve this
+          return formatFunction('resourceId', [this.unescapeExpression(resource.type), this.unescapeExpression(resource.name)], isTopLevel);
+        default:
+          const params = functionCallCtx.property().map(p => this.visitFunctionParamProperty(p));
+
+          return formatFunction(functionName, params, isTopLevel);
       }
     }
 
