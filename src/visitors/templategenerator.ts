@@ -259,10 +259,6 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     const variableCtxts = moduleCtx.section().map(s => s.variable()).filter(x => x !== undefined) as VariableContext[];
 
     const moduleScope = this.globalScope.modules[name];
-    const oldState = this.currentState;
-    this.currentState = new ScopeState(moduleScope);
-
-    // TODO clone the module scope here
 
     const givenInputs = keyBy(ctx.object().objectProperty(), i => i.Identifier().text);
     const givenInputNames = Object.keys(givenInputs);
@@ -279,9 +275,14 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       throw this.buildError(`Unexpected extraneous input(s) for module '${name}': '${givenNotRequired.join('\', \'')}'.`, ctx.Identifier(1).symbol);
     }
 
+    const oldState = this.currentState;
+    const newState = new ScopeState(moduleScope);
+
     for (const inputName of givenInputNames) {
-      this.currentState.variables[inputName] = this.visitTopLevelProperty(givenInputs[inputName].property());
+      newState.variables[inputName] = this.visitTopLevelProperty(givenInputs[inputName].property());
     }
+
+    this.currentState = newState;
 
     this.visitInDependencyOrder(moduleScope, resourceCtxts, variableCtxts);
 
