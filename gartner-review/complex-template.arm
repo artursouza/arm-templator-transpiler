@@ -8,6 +8,7 @@ input string availabilitySetName
 
 variable location 'eastus'
 variable vmSku 'Standard'
+variable dnsPrefix uniqueString(resourceGroup().id)
 variable os {
     Publisher: 'MicrosoftWindowsServer'
     Offer: 'WindowsServer'

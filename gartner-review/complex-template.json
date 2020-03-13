@@ -49,7 +49,12 @@
       "type": "Microsoft.Network/publicIpAddresses",
       "name": "[concat(parameters('namePrefix'), '01', '-pip1')]",
       "location": "eastus",
-      "properties": {}
+      "properties": {
+        "publicIpAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[concat([uniqueString(resourceGroup())], '01')]"
+        }
+      }
     },
     {
       "apiVersion": "2016-03-30",
