@@ -19,11 +19,134 @@
     },
     "availabilitySetName": {
       "type": "string"
-    },
-    "location": {
-      "type": "string"
     }
   },
-  "resources": [],
+  "resources": [
+    {
+      "apiVersion": "2019-08-01",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[concat(parameters('namePrefix'), 'nsg')]",
+      "location": "eastus",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-3389",
+            "properties": {
+              "priority": 1000,
+              "access": "Allow",
+              "direction": "Inbound",
+              "destinationPortRange": "3389",
+              "protocol": "Tcp",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressRange": "*"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIpAddresses",
+      "name": "[concat(parameters('namePrefix'), '01', '-pip1')]",
+      "location": "eastus",
+      "properties": {}
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[concat(parameters('namePrefix'), 'sub001')]",
+      "properties": {
+        "addressPrefix": "",
+        "networkSecurityGroups": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('namePrefix'), 'nsg'))]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('namePrefix'), 'nsg'))]"
+      ]
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[concat(parameters('namePrefix'), 'vnet')]",
+      "location": "eastus",
+      "properties": {
+        "addressSpace": {
+          "addressPrefix": "10.0.0.0/16"
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('namePrefix'), '01', '-nic1')]",
+      "location": "eastus",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(parameters('namePrefix'), '01', '-pip1'))]"
+              },
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), 'sub001'))]"
+              }
+            }
+          }
+        ],
+        "dnsSettings": {
+          "dnsServers": []
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIpAddresses', concat(parameters('namePrefix'), '01', '-pip1'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), 'sub001'))]"
+      ]
+    },
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(parameters('namePrefix'), '01')]",
+      "location": "eastus",
+      "hardwareProfile": {
+        "vmSize": "Standard"
+      },
+      "storageProfile": {
+        "imageReference": {
+          "publisher": "",
+          "offer": "",
+          "sku": "",
+          "version": "latest"
+        },
+        "osDisk": {
+          "name": "[concat(parameters('namePrefix'), '01')]",
+          "createOption": "FromImage",
+          "managedDisk": {
+            "storageAccountType": "Premium_LRS"
+          },
+          "caching": "ReadWrite"
+        }
+      },
+      "osProfile": {
+        "computerName": "",
+        "adminUsername": "",
+        "windowsConfiguration": {},
+        "secrets": [],
+        "adminPassword": "[parameters('adminPassword')]"
+      },
+      "networkProfile": {
+        "networkInterfaces": [
+          {
+            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '01', '-nic1'))]"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '01', '-nic1'))]"
+      ]
+    }
+  ],
   "outputs": {}
 }

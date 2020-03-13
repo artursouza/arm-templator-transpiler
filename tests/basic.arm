@@ -1,24 +1,23 @@
-input string location
+input string rgLocation
 input string namePrefix
 
-variables myVar 'myVar'
+module publicIpAddress {
+  input string name
+  input string location
 
-// distinguish between params and vars?
-// readability - colorization?
+  resource azrm 'network/publicIpAddresses@2019-11-01' publicIp {
+    name: name
+    location: location
+    properties: {
+      publicIPAllocationMethod: 'Dynamic'
+    }
+  }
+}
 
-// script myScript {
-  // write a script here
-
-  // how do I get outputs?
-// }
-// var myScript.outputs.something
-
-// pass the object name as a displayName in the ARM template
-// could the object be optional?
-resource 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
+resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
   name: concat(namePrefix, '-subnet')
-  location: location
-  properties: { // we should be able to get rid of properties
+  location: rgLocation
+  properties: {
     addressSpace: {
       addressPrefixes: [
         '10.0.0.0/24'
@@ -34,14 +33,12 @@ resource azrm 'network/networkInterfaces@2019-11-01' myNic {
 
   // if we are going to do whitespace delimiter, make sure multi-line work
   name: concat(namePrefix, '-nic')
-  location: location
+  location: rgLocation
   properties: {
     ipConfigurations: [{
       name: 'myConfig'
       properties: {
-        subnet: {
-          id: resourceId(mySubnet)
-        }
+        subnet: subnetReference
         privateIPAllocationMethod: 'Dynamic'
       }
     }]
@@ -51,6 +48,12 @@ resource azrm 'network/networkInterfaces@2019-11-01' myNic {
 output nicId resourceId(myNic)
 output myNewOutput 'test'
 
+variable subnetReference {
+  id: resourceId(mySubnet)
+}
+
+// this comment should be ignored
+
 /* this block comment should be ignored
 resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
   name: concat(namePrefix, '-pip')
@@ -59,15 +62,12 @@ resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
 }
 */
 
-// this comment should be ignored
-resource azrm 'network/publicIPAddresses@2019-11-01' myPip {
-  name: concat(namePrefix, '-pip')
-  location: location
-  properties: {
-    publicIPAllocationMethod: 'Dynamic'
-  }
+resource mod 'publicIpAddress' pip1 {
+  name: concat(namePrefix, '-pip1')
+  location: rgLocation
 }
 
+<<<<<<< HEAD
 // modules are ignored for now, but note that identifier clashes (redefining inputs or resources) are allowed due to scoping
 module testModule {
   input string location
@@ -80,6 +80,11 @@ module testModule {
       publicIPAllocationMethod: 'Dynamic'
     }
   }
+=======
+resource mod 'publicIpAddress' pip2 {
+  name: concat(namePrefix, '-pip2')
+  location: rgLocation
+>>>>>>> master
 }
 
 output nicResourceId: resourceId(myNic)

@@ -2,7 +2,7 @@ import fs from 'fs';
 import { argv } from 'process';
 import path from 'path';
 import { execute } from '../src/execute';
-import { TemplateWriter } from '../src/visitor';
+import { TemplateWriter } from '../src/visitors/common';
 
 class TemplateFileWriter implements TemplateWriter {
   private readonly fileName: string;

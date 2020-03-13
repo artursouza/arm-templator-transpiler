@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import { execute } from '../src/execute';
-import { TemplateWriter } from '../src/visitor';
+import { TemplateWriter } from '../src/visitors/common';
 
 function expectEqualIgnoringLineEndings(actual: string, expected: string) {
   actual = actual.replace(/\r/g, '');

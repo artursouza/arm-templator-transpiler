@@ -4,9 +4,135 @@ input string namePrefix
 input string vmCount
 input string operatingSystem
 input string availabilitySetName
-input string location
+// input string location
 
-// variable test 'something'
-variable something {
-    prop: 'value'
+variable location 'eastus'
+variable vmSku 'Standard'
+variable os {
+    Publisher: 'MicrosoftWindowsServer'
+    Offer: 'WindowsServer'
+    Sku: '2012-R2-Datacenter'
+}
+
+variable allow3389 {
+    name: 'default-allow-3389'
+    properties: {
+        priority: 1000
+        access: 'Allow'
+        direction: 'Inbound'
+        destinationPortRange: '3389'
+        protocol: 'Tcp'
+        sourceAddressPrefix: '*'
+        sourcePortRange: '*'
+        destinationAddressRange: '*'
+    }
+}
+
+resource azrm 'network/networkSecurityGroups@2019-08-01' nsg {
+    name: concat(namePrefix, 'nsg')
+    location: location
+    properties: {
+        securityRules: [
+            allow3389
+        ]
+    }
+}
+
+resource azrm 'network/virtualNetworks@2016-03-30' vnet {
+    name: concat(namePrefix, 'vnet')
+    location: location
+    properties: {
+        addressSpace: {
+            addressPrefix: '10.0.0.0/16'
+        }
+    }
+}
+
+resource azrm 'network/virtualNetworks/subnets@2016-03-30' subnet {
+    name: concat(namePrefix, 'sub001') // referencing resource properties not yet supported, so vnet.name doens't work
+    properties: {
+        addressPrefix: ''
+        networkSecurityGroups: {
+            id: resourceId(nsg)
+        }
+    }
+}
+
+// vm, nic, pip should be created together, not two separate loops
+resource azrm 'compute/virtualMachines@2017-03-30' vm {
+    name: concat(namePrefix, '01')
+    location: location
+    hardwareProfile: {
+        vmSize: vmSku
+    }
+    storageProfile: storageProfile
+    osProfile: osProfile
+    networkProfile: {
+        networkInterfaces: [
+            {
+                id: resourceId(nic)
+            }
+        ]
+    }
+}
+
+resource azrm 'network/publicIpAddresses' pip {
+    name: concat(namePrefix, '01', '-pip1')
+    location: location
+    properties: {
+        publicIpAllocationMethod: 'Dynamic'
+        dnsSettings: {
+            domainNameLabel: concat(dnsPrefix, '01') 
+        }
+    }
+}
+
+resource azrm 'network/networkInterfaces@2016-03-30' nic {
+    name: concat(namePrefix, '01', '-nic1')
+    location: location
+    properties: {
+        ipConfigurations: [
+            {
+                name: 'ipconfig1'
+                properties: {
+                    privateIPAllocationMethod: 'Dynamic'
+                    publicIPAddress: {
+                        id: resourceId(pip)
+                    },
+                    subnet: {
+                        id: resourceId(subnet) 
+                    }
+                }
+            }
+        ]
+        dnsSettings: { dnsServers: [] }
+        enableIpForwarding: false
+    }
+}
+
+variable storageProfile {
+    imageReference: {
+        publisher: ''
+        offer: ''
+        sku: ''
+        version: 'latest'
+    }
+    osDisk: {
+        name: concat(namePrefix, '01')
+        createOption: 'FromImage'
+        managedDisk: {
+            storageAccountType: 'Premium_LRS'
+        }
+        caching: 'ReadWrite'
+    }
+}
+
+variable osProfile {
+    computerName: ''
+    adminUsername: ''
+    windowsConfiguration: {
+        provisionVMAgent: true
+    }
+    secrets: []
+    adminPassword: adminPassword
 }
