@@ -26,8 +26,8 @@
     {
       "apiVersion": "2019-11-01",
       "type": "Microsoft.Network/publicIpAddresses",
-      "name": "concat(parameters('namePrefix'), '-pip1')",
-      "location": "parameters('rgLocation')",
+      "name": "[concat(parameters('namePrefix'), '-pip1')]",
+      "location": "[parameters('rgLocation')]",
       "properties": {
         "publicIPAllocationMethod": "Dynamic"
       }
@@ -35,8 +35,8 @@
     {
       "apiVersion": "2019-11-01",
       "type": "Microsoft.Network/publicIpAddresses",
-      "name": "concat(parameters('namePrefix'), '-pip2')",
-      "location": "parameters('rgLocation')",
+      "name": "[concat(parameters('namePrefix'), '-pip2')]",
+      "location": "[parameters('rgLocation')]",
       "properties": {
         "publicIPAllocationMethod": "Dynamic"
       }

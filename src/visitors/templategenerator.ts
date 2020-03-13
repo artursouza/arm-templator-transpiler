@@ -1,7 +1,7 @@
 import { ProgramContext, ResourceContext, ObjectContext, PropertyContext, ArrayContext, InputDeclContext, OutputDeclContext, VariableContext, ModuleContext } from '../antlr4/ArmLangParser';
 import { Dictionary, keyBy, uniq, difference } from 'lodash';
 import { AbstractArmVisitor, Scope, GlobalScope, TemplateWriter } from './common';
-import { getDependencyOrder } from './DependencyBuilder';
+import { getDependencyOrder } from './dependencybuilder';
 
 const providerLookup: Dictionary<string> = {
   network: 'Microsoft.Network',
@@ -280,7 +280,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     }
 
     for (const inputName of givenInputNames) {
-      this.currentState.variables[inputName] = this.visit(givenInputs[inputName]);
+      this.currentState.variables[inputName] = this.visitTopLevelProperty(givenInputs[inputName].property());
     }
 
     this.visitInDependencyOrder(moduleScope, resourceCtxts, variableCtxts);
