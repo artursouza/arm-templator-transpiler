@@ -1,6 +1,8 @@
 input string location
 input string namePrefix
 
+variables myVar 'myVar'
+
 // distinguish between params and vars?
 // readability - colorization?
 
@@ -13,10 +15,10 @@ input string namePrefix
 
 // pass the object name as a displayName in the ARM template
 // could the object be optional?
-resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
+resource 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
   name: concat(namePrefix, '-subnet')
   location: location
-  properties: {
+  properties: { // we should be able to get rid of properties
     addressSpace: {
       addressPrefixes: [
         '10.0.0.0/24'
@@ -75,7 +77,7 @@ module testModule {
     name: concat(namePrefix, '-pip')
     location: location
     properties: {
-    publicIPAllocationMethod: 'Dynamic'
+      publicIPAllocationMethod: 'Dynamic'
     }
   }
 }

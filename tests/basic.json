@@ -7,76 +7,8 @@
     },
     "namePrefix": {
       "type": "string"
-    },
-    "myParam": {
-      "type": "string"
-    },
-    "nicName": {
-      "type": "string"
     }
   },
-  "resources": [
-    {
-      "apiVersion": "2019-11-01",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[concat(parameters('namePrefix'), '-pip')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "publicIPAllocationMethod": "Dynamic"
-      }
-    },
-    {
-      "apiVersion": "2019-11-01",
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[concat(parameters('namePrefix'), '-subnet')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/24"
-          ]
-        }
-      }
-    },
-    {
-      "apiVersion": "2019-11-01",
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(parameters('namePrefix'), '-nic')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "myConfig",
-            "properties": {
-              "subnet": {
-                "id": "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
-              },
-              "privateIPAllocationMethod": "Dynamic"
-            }
-          }
-        ]
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
-      ]
-    }
-  ],
-  "outputs": {
-    "nicId": {
-      "type": "string",
-      "value": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '-nic'))]"
-    },
-    "myNewOutput": {
-      "type": "string",
-      "value": "test"
-    },
-    "somethingElse": {
-      "type": "string",
-      "value": "MyOutput"
-    },
-    "myOutput": {
-      "type": "string",
-      "value": "another output"
-    }
-  }
+  "resources": [],
+  "outputs": {}
 }

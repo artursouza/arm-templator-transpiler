@@ -1,0 +1,12 @@
+input string adminUsername
+input string adminPassword
+input string namePrefix
+input string vmCount
+input string operatingSystem
+input string availabilitySetName
+input string location
+
+// variable test 'something'
+variable something {
+    prop: 'value'
+}
