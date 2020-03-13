@@ -1,5 +1,5 @@
-import { ProgramContext, ResourceContext, ObjectContext, PropertyContext, ArrayContext, InputDeclContext, OutputDeclContext, VariableContext } from '../antlr4/ArmLangParser';
-import { Dictionary, keyBy, uniq } from 'lodash';
+import { ProgramContext, ResourceContext, ObjectContext, PropertyContext, ArrayContext, InputDeclContext, OutputDeclContext, VariableContext, ModuleContext } from '../antlr4/ArmLangParser';
+import { Dictionary, keyBy, uniq, difference } from 'lodash';
 import { AbstractArmVisitor, Scope, GlobalScope, TemplateWriter } from './common';
 import { getDependencyOrder } from './DependencyBuilder';
 
@@ -21,6 +21,18 @@ function parseAzrmTypeString(type: string) {
   return {
     apiVersion,
     fullType,
+  };
+}
+
+function parseModuleTypeString(type: string) {
+  let splitType = type.split('@');
+  if (splitType.length > 1) {
+    throw new Error(`Unable to parse module type '${type}'`);
+  }
+
+  return {
+    name: splitType.length === 1 ? splitType[0] : splitType[1],
+    path: splitType.length === 1 ? splitType[1] : undefined,
   };
 }
 
@@ -75,6 +87,21 @@ function findResourceDependencies(identifier: string, scope: Scope) {
   return uniq(resourceDependencies);
 }
 
+class ScopeState {
+  constructor(scope: Scope) {
+    this.scope = scope;
+  }
+  scope: Scope;
+  variables: Dictionary<any> = {};
+  resources: Dictionary<any> = {};
+}
+
+class TemplateData {
+  parameters: Dictionary<any> = {};
+  resources: any[] = [];
+  outputs: Dictionary<any> = {};
+}
+
 export class TemplateGeneratorVisitor extends AbstractArmVisitor {
   constructor(globalScope: GlobalScope, writer: TemplateWriter) {
     super(globalScope);
@@ -82,10 +109,10 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
   }
 
   private writer: TemplateWriter;
-  private variables: Dictionary<any> = {};
-  private parameters: Dictionary<any> = {};
-  private resources: Dictionary<any> = {};
-  private outputs: Dictionary<any> = {};
+  private globalState: ScopeState = new ScopeState(this.globalScope);
+  private currentState: ScopeState = this.globalState;
+  private template: TemplateData = new TemplateData();
+  private moduleCtxts: Dictionary<ModuleContext> = {};
   
   visitInDependencyOrder(scope: Scope, resourceCtxts: ResourceContext[], variableCtxts: VariableContext[]) {
     // important to visit in dependency order so that we don't end up with 
@@ -112,6 +139,10 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
   }
 
   visitProgram(ctx: ProgramContext) {
+    for (const moduleCtx of ctx.module()) {
+      this.visitModule(moduleCtx);
+    }
+
     const inputCtxts = ctx.section().map(s => s.inputDecl()).filter(x => x !== undefined) as InputDeclContext[];
     const outputCtxts = ctx.section().map(s => s.outputDecl()).filter(x => x !== undefined) as OutputDeclContext[];
     const resourceCtxts = ctx.section().map(s => s.resource()).filter(x => x != undefined) as ResourceContext[];
@@ -121,7 +152,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       this.visitInputDecl(inputCtx);
     }
 
-    this.visitInDependencyOrder(this.globalScope, resourceCtxts, variableCtxts);
+    this.visitInDependencyOrder(this.currentState.scope, resourceCtxts, variableCtxts);
 
     for (const outputCtx of outputCtxts) {
       this.visitOutputDecl(outputCtx);
@@ -132,49 +163,48 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     const template = {
       $schema: 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#',
       contentVersion: '1.0.0.0',
-      parameters: this.parameters,
-      resources: Object.keys(this.resources).map(k => this.resources[k]),
-      outputs: this.outputs,
+      parameters: this.template.parameters,
+      resources: this.template.resources,
+      outputs: this.template.outputs,
     };
 
     this.writer.write(template);
   }
 
   visitVariable(ctx: VariableContext) {
-    this.variables[ctx.Identifier().text] = this.visitTopLevelProperty(ctx.property());
+    this.currentState.variables[ctx.Identifier().text] = this.visitTopLevelProperty(ctx.property());
   }
 
   visitInputDecl(ctx: InputDeclContext) {
     const name = ctx.Identifier().text;
     const type = ctx.type().text;
 
-    this.parameters[name] = {
-      type: type,
-    };
+    if (this.currentState === this.globalState) {
+      this.template.parameters[name] = {
+        type: type,
+      };
+    }
   }
 
   visitOutputDecl(ctx: OutputDeclContext) {
     const name = ctx.Identifier().text;
     const value = this.visitTopLevelProperty(ctx.property());
 
-    this.outputs[name] = {
-      // TODO add other types for output
-      type: 'string',
-      value: value,
-    };
+    if (this.currentState === this.globalState) {
+      this.template.outputs[name] = {
+        // TODO add other types for output
+        type: 'string',
+        value: value,
+      };
+    }
   }
 
-  visitResource(ctx: ResourceContext) {
-    const provider = ctx.Identifier(0).text;
-    if (provider !== 'azrm') {
-      throw new Error(`Provider ${provider} is not supported in this prototype!`);
-    }
-
+  visitAzrmResource(ctx: ResourceContext) {
     const identifier = ctx.Identifier(1).text;
-    const resourceDependencies = findResourceDependencies(identifier, this.globalScope);
+    const resourceDependencies = findResourceDependencies(identifier, this.currentState.scope);
     const dependsOn = [];
     for (const resource of resourceDependencies) {
-      const resourceIdExpression = formatFunction('resourceId', [this.unescapeExpression(this.resources[resource].type), this.unescapeExpression(this.resources[resource].name)], true);
+      const resourceIdExpression = formatFunction('resourceId', [this.unescapeExpression(this.currentState.resources[resource].type), this.unescapeExpression(this.currentState.resources[resource].name)], true);
       dependsOn.push(resourceIdExpression);
     }
 
@@ -188,7 +218,80 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       dependsOn: dependsOn.length > 0 ? dependsOn : undefined,
     };
 
-    this.resources[ctx.Identifier(1).text] = resource;
+    this.template.resources.push(resource);
+    this.currentState.resources[ctx.Identifier(1).text] = resource;
+  }
+
+  visitModuleResource(ctx: ResourceContext) {
+    const identifier = ctx.Identifier(1).text;
+    const { name, path } = parseModuleTypeString(parseAstString(ctx.String().text));
+
+    if (path) {
+      throw this.buildError(`Unable to process ${identifier} - file-based modules are not yet implemented`, ctx.Identifier(1).symbol);
+    }
+
+    const moduleScope = this.globalScope.modules[name];
+    if (!moduleScope) {
+      throw this.buildError(`Unable to find module '${name}'`, ctx.Identifier(1).symbol);
+    }
+
+    this.callModule(name, ctx);
+  }
+
+  visitResource(ctx: ResourceContext) {
+    const provider = ctx.Identifier(0).text;
+
+    switch (provider) {
+      case 'azrm':
+        this.visitAzrmResource(ctx);
+        break;
+      case 'mod':
+        this.visitModuleResource(ctx);
+        break;
+      default:
+        throw this.buildError(`Provider ${provider} is not supported in this prototype!`, ctx.Identifier(0).symbol);
+      }
+  }
+
+  callModule(name: string, ctx: ResourceContext) {
+    const moduleCtx = this.moduleCtxts[name];
+    const resourceCtxts = moduleCtx.section().map(s => s.resource()).filter(x => x != undefined) as ResourceContext[];
+    const variableCtxts = moduleCtx.section().map(s => s.variable()).filter(x => x !== undefined) as VariableContext[];
+
+    const moduleScope = this.globalScope.modules[name];
+    const oldState = this.currentState;
+    this.currentState = new ScopeState(moduleScope);
+
+    // TODO clone the module scope here
+
+    const givenInputs = keyBy(ctx.object().objectProperty(), i => i.Identifier().text);
+    const givenInputNames = Object.keys(givenInputs);
+  
+    const requiredInputNames = Object.keys(moduleScope.inputs);
+
+    const requiredNotGiven = difference(requiredInputNames, givenInputNames);
+    if (requiredNotGiven.length > 0) {
+      throw this.buildError(`Missing required input(s) for module '${name}': '${requiredNotGiven.join('\', \'')}'.`, ctx.Identifier(1).symbol);
+    }
+
+    const givenNotRequired = difference(givenInputNames, requiredInputNames);
+    if (givenNotRequired.length > 0) {
+      throw this.buildError(`Unexpected extraneous input(s) for module '${name}': '${givenNotRequired.join('\', \'')}'.`, ctx.Identifier(1).symbol);
+    }
+
+    for (const inputName of givenInputNames) {
+      this.currentState.variables[inputName] = this.visit(givenInputs[inputName]);
+    }
+
+    this.visitInDependencyOrder(moduleScope, resourceCtxts, variableCtxts);
+
+    this.currentState = oldState;
+  }
+
+  visitModule(ctx: ModuleContext) {
+    const name = ctx.Identifier().text;
+
+    this.moduleCtxts[name] = ctx;
   }
 
   visitObject(ctx: ObjectContext) {
@@ -258,15 +361,15 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
 
     const identifierCallCtx = ctx.identifierCall();
     if (identifierCallCtx) {
-      if (this.variables[identifierCallCtx.text]) {
-        return this.variables[identifierCallCtx.text];
+      if (this.currentState.variables[identifierCallCtx.text]) {
+        return this.currentState.variables[identifierCallCtx.text];
       }
 
-      if (this.parameters[identifierCallCtx.text]) {
+      if (this.template.parameters[identifierCallCtx.text]) {
         return formatFunction('parameters', [toParamString(identifierCallCtx.text)], isTopLevel);
       }
 
-      throw new Error(`Direct references to resources are not yet supported in this prototype!`);
+      throw this.buildError(`Direct references to resources are not yet supported!`, identifierCallCtx.Identifier().symbol);
       // TODO handle functions like .id() here, and property access using reference().
     }
 
@@ -276,15 +379,15 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       switch (functionName) {
         case 'resourceId':
           if (functionCallCtx.property().length !== 1) {
-            throw new Error(`Invalid number of params passed to resourceId function (expecting 1)`)
+            throw this.buildError(`Invalid number of params passed to resourceId function (expecting 1)`, functionCallCtx.Identifier().symbol);
           }
 
           const identifier = functionCallCtx.property(0).identifierCall()?.text;
-          if (!identifier || !this.resources[identifier]) {
-            throw new Error(`Invalid resource passed to resourceId function`);
+          if (!identifier || !this.currentState.resources[identifier]) {
+            throw this.buildError(`Invalid resource passed to resourceId function`, functionCallCtx.Identifier().symbol);
           }
 
-          const resource = this.resources[identifier];
+          const resource = this.currentState.resources[identifier];
 
           // TODO improve this
           return formatFunction('resourceId', [this.unescapeExpression(resource.type), this.unescapeExpression(resource.name)], isTopLevel);
