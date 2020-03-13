@@ -1,0 +1,96 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "ArmLang",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#properties"
+		},
+		{
+			"include": "#functions"
+		},
+		{
+			"include": "#comments"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.armlang",
+				"match": "\\b(resource|module|variable|export|input|output|for|in|if|else)\\b"
+			}, {
+				"name": "keyword.bundle.armlang",
+				"match": "\\b(azrm|mod)\\b"
+			}, {
+				"name": "keyword.type.armlang",
+				"match": "\\b(string|securestring|int|bool|object|array)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.single.armlang",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"name": "constant.character.escape.armlang",
+					"match": "\\\\."
+				}
+			]
+		},
+		"properties": {
+			"match": "\\b([a-zA-Z][a-zA-Z0-9]*)\\w*\\b:",
+			"captures": {
+				"1": {
+					"name": "support.type.property-name.armlang"
+				}
+			}
+		},
+		"functions": {
+			"match": "\\b([a-zA-Z][a-zA-Z0-9]*)\\w*\\(\\b",
+			"captures": {
+				"1": {
+					"name": "support.function.armlang"
+				}
+			}
+		},
+        "comments": {
+            "patterns": [
+                {
+                    "begin": "/\\*\\*(?!/)",
+                    "captures": {
+                        "0": {
+                            "name": "punctuation.definition.comment.armlang"
+                        }
+                    },
+                    "end": "\\*/",
+                    "name": "comment.block.documentation.armlang"
+                },
+                {
+                    "begin": "/\\*",
+                    "captures": {
+                        "0": {
+                            "name": "punctuation.definition.comment.armlang"
+                        }
+                    },
+                    "end": "\\*/",
+                    "name": "comment.block.armlang"
+                },
+                {
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.definition.comment.armlang"
+                        }
+                    },
+                    "match": "(//).*$\\n?",
+                    "name": "comment.line.double-slash.js"
+                }
+            ]
+        }
+	},
+	"scopeName": "source.armlang"
+}
