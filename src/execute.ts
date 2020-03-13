@@ -4,7 +4,7 @@ import { ArmLangParser, ProgramContext, } from './antlr4/ArmLangParser';
 import { GlobalScope, AbstractArmVisitor, TemplateWriter } from './visitors/common';
 import { ScopePopulatorVisitor } from './visitors/scopepopulator';
 import { ScopeCheckVisitor } from './visitors/scopecheck';
-import { DependencyBuilderVisitor } from './visitors/DependencyBuilder';
+import { DependencyBuilderVisitor } from './visitors/dependencybuilder';
 import { TemplateGeneratorVisitor } from './visitors/templategenerator';
 
 export function execute(input: string, writer: TemplateWriter) {
