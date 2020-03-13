@@ -15,14 +15,10 @@ module publicIpAddress {
 }
 
 resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
-  name: concat(namePrefix, '-subnet')
+  name: concat('myVnet/', namePrefix, '-subnet')
   location: rgLocation
   properties: {
-    addressSpace: {
-      addressPrefixes: [
-        '10.0.0.0/24'
-      ]
-    }
+    addressPrefix: '10.0.0.0/24'
   }
 }
 

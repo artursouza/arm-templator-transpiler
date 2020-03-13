@@ -10,13 +10,14 @@ const providerLookup: Dictionary<string> = {
 }
 
 function parseAzrmTypeString(type: string) {
-  let provider = type.split('/')[0];
+  const [typeString, apiVersion] = type.split('@');
+  let [provider, ...typeArray] = typeString.split('/');
+
   if (providerLookup[provider]) {
     provider = providerLookup[provider];
   }
 
-  let apiVersion = type.split('@')[1];
-  let fullType = `${provider}/${type.split('/')[1].split('@')[0]}`
+  let fullType = `${provider}/${typeArray.join('/')}`
 
   return {
     apiVersion,
