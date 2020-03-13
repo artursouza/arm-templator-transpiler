@@ -67,7 +67,6 @@ resource mod 'publicIpAddress' pip1 {
   location: rgLocation
 }
 
-<<<<<<< HEAD
 // modules are ignored for now, but note that identifier clashes (redefining inputs or resources) are allowed due to scoping
 module testModule {
   input string location
@@ -80,11 +79,6 @@ module testModule {
       publicIPAllocationMethod: 'Dynamic'
     }
   }
-=======
-resource mod 'publicIpAddress' pip2 {
-  name: concat(namePrefix, '-pip2')
-  location: rgLocation
->>>>>>> master
 }
 
 output nicResourceId: resourceId(myNic)

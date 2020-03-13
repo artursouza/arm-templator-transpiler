@@ -46,6 +46,7 @@
       }
     },
     {
+      "apiVersion": "2016-03-30",
       "type": "Microsoft.Network/publicIpAddresses",
       "name": "[concat(parameters('namePrefix'), '01', '-pip1')]",
       "location": "eastus",
@@ -55,6 +56,15 @@
           "domainNameLabel": "[concat([uniqueString(resourceGroup())], '01')]"
         }
       }
+    },
+    {
+      "apiVersion": "2016-01-01",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[uniqueString(resourceGroup())]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "Storage"
     },
     {
       "apiVersion": "2016-03-30",
@@ -120,9 +130,9 @@
       },
       "storageProfile": {
         "imageReference": {
-          "publisher": "",
-          "offer": "",
-          "sku": "",
+          "publisher": "MicrosoftWindowsServer",
+          "offer": "WindowsServer",
+          "sku": "2012-R2-Datacenter",
           "version": "latest"
         },
         "osDisk": {
@@ -135,8 +145,8 @@
         }
       },
       "osProfile": {
-        "computerName": "",
-        "adminUsername": "",
+        "computerName": "[concat(parameters('namePrefix'), '01')]",
+        "adminUsername": "[parameters('adminUsername')]",
         "windowsConfiguration": {},
         "secrets": [],
         "adminPassword": "[parameters('adminPassword')]"
@@ -148,8 +158,14 @@
           }
         ]
       },
+      "diagnosticsProfile": {
+        "bootDiagnostics": {
+          "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', uniqueString(resourceGroup())), '2016-01-01')]"
+        }
+      },
       "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '01', '-nic1'))]"
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '01', '-nic1'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', uniqueString(resourceGroup()))]"
       ]
     }
   ],

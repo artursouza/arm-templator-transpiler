@@ -4,11 +4,10 @@ input string namePrefix
 input string vmCount
 input string operatingSystem
 input string availabilitySetName
-// input string location
 
-variable location 'eastus'
+variable location 'eastus' // switching between vars and params is really easy
 variable vmSku 'Standard'
-variable dnsPrefix uniqueString(resourceGroup().id)
+variable dnsPrefix uniqueString(resourceGroup().id) // this causes a bug because it inserts brackets incorrectly
 variable os {
     Publisher: 'MicrosoftWindowsServer'
     Offer: 'WindowsServer'
@@ -34,7 +33,7 @@ resource azrm 'network/networkSecurityGroups@2019-08-01' nsg {
     location: location
     properties: {
         securityRules: [
-            allow3389
+            allow3389 // referencing an object here is lovely
         ]
     }
 }
@@ -75,9 +74,15 @@ resource azrm 'compute/virtualMachines@2017-03-30' vm {
             }
         ]
     }
+    diagnosticsProfile: {
+        bootDiagnostics: {
+            enabled: true
+            storageUri: reference(resourceId(storage), '2016-01-01').primaryEndpoints.blob // this is an ugly line...
+        }
+    }
 }
 
-resource azrm 'network/publicIpAddresses' pip {
+resource azrm 'network/publicIpAddresses@2016-03-30' pip {
     name: concat(namePrefix, '01', '-pip1')
     location: location
     properties: {
@@ -106,16 +111,22 @@ resource azrm 'network/networkInterfaces@2016-03-30' nic {
                 }
             }
         ]
-        dnsSettings: { dnsServers: [] }
+        dnsSettings: { dnsServers: [] } // do I need this?
         enableIpForwarding: false
     }
 }
 
+resource azrm 'storage/storageAccounts@2016-01-01' storage {
+    name: uniqueString(resourceGroup().location)
+    sku: { name: 'Standard_LRS' }
+    kind: 'Storage'
+}
+
 variable storageProfile {
     imageReference: {
-        publisher: ''
-        offer: ''
-        sku: ''
+        publisher: 'MicrosoftWindowsServer'
+        offer: 'WindowsServer'
+        sku: '2012-R2-Datacenter'
         version: 'latest'
     }
     osDisk: {
@@ -129,8 +140,8 @@ variable storageProfile {
 }
 
 variable osProfile {
-    computerName: ''
-    adminUsername: ''
+    computerName: concat(namePrefix, '01')
+    adminUsername: adminUsername
     windowsConfiguration: {
         provisionVMAgent: true
     }
