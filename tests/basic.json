@@ -1,0 +1,78 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgLocation": {
+      "type": "string"
+    },
+    "namePrefix": {
+      "type": "string"
+    },
+    "myNewParam": {
+      "type": "string"
+    },
+    "nicName": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2019-11-01",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[concat(parameters('namePrefix'), '-subnet')]",
+      "location": "[parameters('rgLocation')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/24"
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2019-11-01",
+      "type": "Microsoft.Network/publicIpAddresses",
+      "name": "myPipName",
+      "location": "[parameters('rgLocation')]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "apiVersion": "2019-11-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('namePrefix'), '-nic')]",
+      "location": "[parameters('rgLocation')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "myConfig",
+            "properties": {
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
+              },
+              "privateIPAllocationMethod": "Dynamic"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "nicId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '-nic'))]"
+    },
+    "myNewOutput": {
+      "type": "string",
+      "value": "test"
+    },
+    "nicResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '-nic'))]"
+    }
+  }
+}

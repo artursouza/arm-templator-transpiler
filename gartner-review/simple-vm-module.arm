@@ -1,0 +1,191 @@
+input string namePrefix
+input string location
+input string adminUsername
+input string adminPassword
+
+// input string vmCount // can I loop with a module?
+// input string operatingSystem - todo - incorporate this
+
+resource mod 'vmAndTheFixins' vm1 { // is it weird that the module name is a string?
+  namePrefix: namePrefix // concat(namePrefix, '-pip1')
+  location: location
+  adminUsername: adminUsername
+  adminPassword: adminPassword
+}
+
+
+/* ********* THIS CODE WOULD BE IN ANOTHER FILE ********* */
+
+module vmAndTheFixins {
+    input string namePrefix
+    input string location
+
+    input string adminUsername
+    input string adminPassword
+
+    // variable location 'eastus' // switching between vars and params is really easy
+    variable vmSku 'Standard_D2'
+    variable dnsPrefix uniqueString('alexabc') // this causes a bug because it inserts brackets incorrectly
+    variable os {
+        Publisher: 'MicrosoftWindowsServer'
+        Offer: 'WindowsServer'
+        Sku: '2012-R2-Datacenter'
+    }
+
+    variable allow3389 {
+        name: 'default-allow-3389'
+        properties: {
+            priority: 1000
+            access: 'Allow'
+            direction: 'Inbound'
+            destinationPortRange: '3389'
+            protocol: 'Tcp'
+            sourceAddressPrefix: '*'
+            sourcePortRange: '*'
+            destinationAddressRange: '*'
+        }
+    }
+
+    /*
+    resource azrm 'network/publicIpAddresses@2019-11-01' publicIp {
+        name: name
+        location: location
+        properties: {
+            publicIPAllocationMethod: 'Dynamic'
+        }
+    }
+    */
+
+    resource azrm 'network/networkSecurityGroups@2019-08-01' nsg {
+        name: concat(namePrefix, 'nsg')
+        location: location
+        properties: {
+            securityRules: [
+                allow3389 // referencing an object here is lovely
+            ]
+        }
+    }
+
+    resource azrm 'network/virtualNetworks@2016-03-30' vnet {
+        name: concat(namePrefix, 'vnet')
+        location: location
+        properties: {
+            addressSpace: {
+                addressPrefixes: ['10.0.0.0/16']
+            },
+            subnets: [
+                {
+                    name: concat(namePrefix, 'sub001') // referencing resource properties not yet supported, so vnet.name doens't work
+                    properties: {
+                        addressPrefix: '10.0.0.0/15'
+                        networkSecurityGroups: {
+                            id: resourceId(nsg)
+                        }
+                    }
+                }
+            ]
+        }
+    }
+
+    /*
+    resource azrm 'network/virtualNetworks/subnets@2016-03-30' subnet {
+        name: concat(namePrefix, 'sub001') // referencing resource properties not yet supported, so vnet.name doens't work
+        properties: {
+            addressPrefix: '10.0.0.0/15'
+            networkSecurityGroups: {
+                id: resourceId(nsg)
+            }
+        }
+    }
+    */
+
+    resource azrm 'compute/virtualMachines@2017-03-30' vm {
+        name: concat(namePrefix, 'vm01') // i is used as the iterator, can be translated to copyIndex()
+        location: location
+        properties: {
+            hardwareProfile: {
+                vmSize: vmSku
+            }
+            storageProfile: {
+                imageReference: {
+                    publisher: 'MicrosoftWindowsServer'
+                    offer: 'WindowsServer'
+                    sku: '2012-R2-Datacenter'
+                    version: 'latest'
+                }
+                osDisk: {
+                    name: concat(namePrefix, '1')
+                    createOption: 'FromImage'
+                    managedDisk: {
+                        storageAccountType: 'Premium_LRS'
+                    }
+                    caching: 'ReadWrite'
+                }
+            }
+            osProfile: {
+                computerName: concat(namePrefix, '1')
+                adminUsername: adminUsername
+                windowsConfiguration: {
+                    provisionVMAgent: true
+                }
+                secrets: []
+                adminPassword: adminPassword
+            }
+            networkProfile: {
+                networkInterfaces: [
+                    {
+                        id: resourceId(nic)
+                    }
+                ]
+            }
+            diagnosticsProfile: {
+                bootDiagnostics: {
+                    enabled: true
+                    storageUri: reference(resourceId(storage), '2016-01-01').primaryEndpoints.blob // this is an ugly line...
+                }
+            }
+        }
+    }
+
+    resource azrm 'network/publicIpAddresses@2016-03-30' pip {
+        name: concat(namePrefix, '1', '-pip1')
+        location: location
+        properties: {
+            publicIpAllocationMethod: 'Dynamic'
+            dnsSettings: {
+                domainNameLabel: concat(dnsPrefix, '1') 
+            }
+        }
+    }
+
+    resource azrm 'network/networkInterfaces@2016-03-30' nic {
+        name: concat(namePrefix, '1', '-nic1')
+        location: location
+        properties: {
+            ipConfigurations: [
+                {
+                    name: 'ipconfig01'
+                    properties: {
+                        privateIPAllocationMethod: 'Dynamic'
+                        publicIPAddress: {
+                            id: resourceId(pip)
+                        },
+                        subnet: {
+                            id: concat('Microsoft.Network/virtualNetworks/subnets', concat(namePrefix, 'sub001')// resourceId(subnet) 
+                        }
+                    }
+                }
+            ]
+            dnsSettings: { dnsServers: [] } // do I need this?
+            enableIpForwarding: false
+        }
+    }
+
+    // storage for diagnostics
+    resource azrm 'storage/storageAccounts@2016-01-01' storage {
+        name: uniqueString(location)
+        location: location
+        sku: { name: 'Standard_LRS' }
+        kind: 'Storage'
+    }
+}

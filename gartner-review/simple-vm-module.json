@@ -1,0 +1,175 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "namePrefix": {
+      "type": "string",
+      "defaultValue": "abc123"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus"
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "alfran"
+    },
+    "adminPassword": {
+      "type": "string",
+      "defaultValue": "P@ssw0rd123456"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2019-08-01",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[concat(parameters('namePrefix'), 'nsg')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-3389",
+            "properties": {
+              "priority": 1000,
+              "access": "Allow",
+              "direction": "Inbound",
+              "destinationPortRange": "3389",
+              "protocol": "Tcp",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressRange": "*"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/publicIpAddresses",
+      "name": "[concat(parameters('namePrefix'), '1', '-pip1')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publicIpAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[concat(uniqueString('alexabc'), '1')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-01-01",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[uniqueString(parameters('location'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "Storage"
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[concat(parameters('namePrefix'), 'vnet')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[concat(parameters('namePrefix'), 'sub001')]",
+            "properties": {
+              "addressPrefix": "10.0.0.0/15",
+              "networkSecurityGroups": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('namePrefix'), 'nsg'))]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('namePrefix'), 'nsg'))]"
+      ]
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('namePrefix'), '1', '-nic1')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig01",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(parameters('namePrefix'), '1', '-pip1'))]"
+              },
+              "subnet": {
+                "id": "[concat('Microsoft.Network/virtualNetworks/subnets', concat(parameters('namePrefix'), 'sub001'))]"
+              }
+            }
+          }
+        ],
+        "dnsSettings": {
+          "dnsServers": []
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIpAddresses', concat(parameters('namePrefix'), '1', '-pip1'))]"
+      ]
+    },
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(parameters('namePrefix'), 'vm01')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "Standard_D2"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2012-R2-Datacenter",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(parameters('namePrefix'), '1')]",
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            },
+            "caching": "ReadWrite"
+          }
+        },
+        "osProfile": {
+          "computerName": "[concat(parameters('namePrefix'), '1')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "windowsConfiguration": {},
+          "secrets": [],
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '1', '-nic1'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', uniqueString(parameters('location'))), '2016-01-01')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '1', '-nic1'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', uniqueString(parameters('location')))]"
+      ]
+    }
+  ],
+  "outputs": {}
+}
