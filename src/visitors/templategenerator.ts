@@ -93,7 +93,7 @@ class ScopeState {
     this.scope = scope;
   }
   scope: Scope;
-  variables: Dictionary<any> = {};
+  variables: Dictionary<(isTopLevel: boolean) => any> = {};
   resources: Dictionary<any> = {};
 }
 
@@ -159,8 +159,6 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       this.visitOutputDecl(outputCtx);
     }
 
-    // TODO visit modules
-
     const template = {
       $schema: 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#',
       contentVersion: '1.0.0.0',
@@ -173,7 +171,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
   }
 
   visitVariable(ctx: VariableContext) {
-    this.currentState.variables[ctx.Identifier().text] = this.visitTopLevelProperty(ctx.property());
+    this.currentState.variables[ctx.Identifier().text] = isTopLevel => this.visitPropertyInternal(ctx.property(), isTopLevel);
   }
 
   visitInputDecl(ctx: InputDeclContext) {
@@ -280,7 +278,13 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     const newState = new ScopeState(moduleScope);
 
     for (const inputName of givenInputNames) {
-      newState.variables[inputName] = this.visitTopLevelProperty(givenInputs[inputName].property());
+      newState.variables[inputName] = isTopLevel => {
+        this.currentState = oldState;
+        const output = this.visitPropertyInternal(givenInputs[inputName].property(), isTopLevel);
+        this.currentState = newState;
+
+        return output;
+      }
     }
 
     this.currentState = newState;
@@ -364,7 +368,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     const identifierCallCtx = ctx.identifierCall();
     if (identifierCallCtx) {
       if (this.currentState.variables[identifierCallCtx.text]) {
-        return this.currentState.variables[identifierCallCtx.text];
+        return this.currentState.variables[identifierCallCtx.text](isTopLevel);
       }
 
       if (this.template.parameters[identifierCallCtx.text]) {

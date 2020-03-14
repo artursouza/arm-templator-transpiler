@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgLocation": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2019-01-01",
+      "type": "Microsoft.Network/mockResource",
+      "name": "test1",
+      "location": "[parameters('rgLocation')]"
+    },
+    {
+      "apiVersion": "2019-01-01",
+      "type": "Microsoft.Network/mockResource",
+      "name": "test3",
+      "properties": "[resourceId('Microsoft.Network/mockResource', 'test1')]"
+    },
+    {
+      "apiVersion": "2019-01-01",
+      "type": "Microsoft.Network/mockResource",
+      "name": "test2",
+      "properties": {
+        "test1": "[resourceId('Microsoft.Network/mockResource', 'test1')]",
+        "test2": "[parameters('rgLocation')]"
+      }
+    }
+  ],
+  "outputs": {}
+}

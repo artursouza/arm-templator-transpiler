@@ -41,4 +41,5 @@ function testTemplateGeneration(input: string, output: string) {
 
 describe('Template generation', () => {
   it('basic', () => testTemplateGeneration('./basic.arm', './basic.json'));
+  it('module', () => testTemplateGeneration('./module.arm', './module.json'));
 });
