@@ -371,12 +371,41 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
 
     const identifierCallCtx = ctx.identifierCall();
     if (identifierCallCtx) {
-      if (this.currentState.variables[identifierCallCtx.text]) {
-        return this.currentState.variables[identifierCallCtx.text](isTopLevel);
+      const identifier = identifierCallCtx.Identifier();
+
+      if (this.currentState.variables[identifier.text]) {
+        return this.currentState.variables[identifier.text](isTopLevel);
       }
 
-      if (this.template.parameters[identifierCallCtx.text]) {
-        return formatFunction('parameters', [toParamString(identifierCallCtx.text)], isTopLevel);
+      if (this.template.parameters[identifier.text]) {
+        return formatFunction('parameters', [toParamString(identifier.text)], isTopLevel);
+      }
+
+      if (this.currentState.resources[identifier.text]) {
+        const resource = this.currentState.resources[identifier.text];
+
+        let propertyTail = ctx.propertyTail();
+        if (propertyTail?.propertyCall() === undefined) {
+          throw this.buildError(`Invalid resource reference`, identifier.symbol);
+        }
+
+        const properties: string[] = [];
+        while (propertyTail?.propertyCall() !== undefined) {
+          const property = propertyTail?.propertyCall()?.text as string;
+
+          properties.push(property);
+          propertyTail = propertyTail.propertyTail();
+        }
+
+        if (properties[0] === 'properties') {
+          const reference = formatFunction('reference', [toResourceIdExpression(resource, false)], false);
+          const output = `${reference}.${properties.slice(1).join('.')}`;
+          return isTopLevel ? `[${output}]` : output;
+        } else {
+          const reference = formatFunction('reference', [toResourceIdExpression(resource, false), toParamString(resource.apiVersion), toParamString('full')], false);
+          const output = `${reference}.${properties.join('.')}`;
+          return isTopLevel ? `[${output}]` : output;
+        }
       }
 
       throw this.buildError(`Direct references to resources are not yet supported!`, identifierCallCtx.Identifier().symbol);

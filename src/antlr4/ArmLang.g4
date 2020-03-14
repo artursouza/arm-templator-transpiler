@@ -93,7 +93,6 @@ property
 
 propertyTail
     : '.' propertyCall propertyTail
-    | '.' functionCall propertyTail
     | /* epsilon */
     ;
 

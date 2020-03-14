@@ -5,6 +5,11 @@ resource azrm 'network/mockResource@2019-01-01' mockResource {
   location: rgLocation
 }
 
+resource azrm 'network/mockResource@2019-01-01' mockResource2 {
+  name: 'test1'
+  location: rgLocation
+}
+
 variable myVar1 {
   test1: resourceId(mockResource)
   test2: rgLocation
@@ -17,7 +22,10 @@ module testModule {
 
   resource azrm 'network/mockResource@2019-01-01' mockResource {
     name: name
-    properties: input1
+    properties: {
+      input1: input1
+      input2: input2
+    }
   }
 }
 
@@ -31,4 +39,10 @@ resource mod 'testModule' myMod2 {
   name: 'test3'
   input1: resourceId(mockResource)
   input2: rgLocation
+}
+
+resource mod 'testModule' myMod3 {
+  name: 'test4'
+  input1: mockResource.properties.test1
+  input2: mockResource.test2
 }
