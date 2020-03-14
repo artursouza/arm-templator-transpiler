@@ -88,6 +88,19 @@ function findResourceDependencies(identifier: string, scope: Scope) {
   return uniq(resourceDependencies);
 }
 
+function toResourceIdExpression(resource: any, isTopLevel: boolean) {
+  // TODO very hacky - fix this!
+  function unescapeExpression(input: string) {
+    if (input.length >= 2 && input[0] === '[' && input[input.length -1] === ']') {
+      return input.substring(1, input.length -1);
+    } else {
+      return toParamString(input);
+    }
+  }
+
+  return formatFunction('resourceId', [unescapeExpression(resource.type), unescapeExpression(resource.name)], isTopLevel);
+}
+
 class ScopeState {
   constructor(scope: Scope) {
     this.scope = scope;
@@ -203,7 +216,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     const resourceDependencies = findResourceDependencies(identifier, this.currentState.scope);
     const dependsOn = [];
     for (const resource of resourceDependencies) {
-      const resourceIdExpression = formatFunction('resourceId', [this.unescapeExpression(this.currentState.resources[resource].type), this.unescapeExpression(this.currentState.resources[resource].name)], true);
+      const resourceIdExpression = toResourceIdExpression(this.currentState.resources[resource], true);
       dependsOn.push(resourceIdExpression);
     }
 
@@ -326,15 +339,6 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     return output;
   }
 
-  unescapeExpression(input: string) {
-    // TODO very hacky - fix this!
-    if (input.length >= 2 && input[0] === '[' && input[input.length -1] === ']') {
-      return input.substring(1, input.length -1);
-    } else {
-      return toParamString(input);
-    }
-  }
-
   visitTopLevelProperty(ctx: PropertyContext): any {
     return this.visitPropertyInternal(ctx, true);
   }
@@ -396,7 +400,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
           const resource = this.currentState.resources[identifier];
 
           // TODO improve this
-          return formatFunction('resourceId', [this.unescapeExpression(resource.type), this.unescapeExpression(resource.name)], isTopLevel);
+          return toResourceIdExpression(resource, isTopLevel);
         default:
           const params = functionCallCtx.property().map(p => this.visitFunctionParamProperty(p));
 
