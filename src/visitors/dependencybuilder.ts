@@ -10,7 +10,7 @@ export class DependencyBuilderVisitor extends AbstractArmVisitor {
 
   detectCycles(scope: Scope) {
     for (const identifier of Object.keys(scope.dependencies)) {
-      const cycle = findDependencyCycle(identifier, identifier, scope.dependencies, new Set<string>());
+      const cycle = findDependencyCycle(identifier, scope.dependencies);
       if (cycle) {
         this.addError(`Found cyclic dependency (${identifier} -> ${cycle.join(' -> ')})`, scope.identifiers[identifier]);
       }
@@ -73,7 +73,7 @@ export class DependencyBuilderVisitor extends AbstractArmVisitor {
     const oldIdentifier = this.scopeIdentifier;
     this.scopeIdentifier = undefined;
 
-     this.visitChildren(ctx);
+    this.visitChildren(ctx);
 
     this.scopeIdentifier = oldIdentifier;
   }

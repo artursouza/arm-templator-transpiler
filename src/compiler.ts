@@ -1,16 +1,16 @@
 import { ANTLRInputStream, CommonTokenStream } from 'antlr4ts'
 import { ArmLangLexer } from './antlr4/ArmLangLexer';
 import { ArmLangParser, ProgramContext, } from './antlr4/ArmLangParser';
-import { GlobalScope, AbstractArmVisitor, TemplateWriter } from './visitors/common';
+import { GlobalScope, AbstractArmVisitor, TemplateWriter, resolvePath } from './visitors/common';
 import { ScopePopulatorVisitor } from './visitors/scopepopulator';
 import { ScopeCheckVisitor } from './visitors/scopecheck';
 import { DependencyBuilderVisitor } from './visitors/dependencybuilder';
-import { TemplateGeneratorVisitor } from './visitors/templategenerator';
+import { TemplateVisitor } from './visitors/template';
 import fs from 'fs';
 import { ModuleImportVisitor } from './visitors/moduleimport';
 import path from 'path';
 import { Dictionary } from 'lodash';
-import { DependencyNode, findDependencyCycle } from './dependencies';
+import { DependencyNode, findDependencyCycle, getDependencyOrder } from './dependencies';
 
 export class ArmLangCompiler {
   private programCache: Dictionary<ProgramContext> = {};
@@ -20,20 +20,23 @@ export class ArmLangCompiler {
 
     const modules = this.buildModuleDependencyGraph(filePath);
     for (const moulePath of Object.keys(modules)) {
-      const cycle = findDependencyCycle(moulePath, moulePath, modules, new Set<string>());
+      const cycle = findDependencyCycle(moulePath, modules);
       if (cycle) {
         throw new Error(`Found cyclic module dependency (${moulePath} -> ${cycle.join(' -> ')})`);
       }
     }
+    
+    const externalVisitors: Dictionary<TemplateVisitor> = {};
+    for (const modulePath of getDependencyOrder(modules)) {
+      const scope = new GlobalScope(modulePath, modulePath !== filePath);
 
-    visit(this.programCache[filePath], writer);
-  }
+      const templateVisitor = new TemplateVisitor(scope, writer, externalVisitors);
+      visitWithErrorHandling(scope, this.programCache[modulePath], new ScopePopulatorVisitor(scope));
+      visitWithErrorHandling(scope, this.programCache[modulePath], new ScopeCheckVisitor(scope));
+      visitWithErrorHandling(scope, this.programCache[modulePath], new DependencyBuilderVisitor(scope));
+      visitWithErrorHandling(scope, this.programCache[modulePath], templateVisitor);
 
-  private resolvePath(parentPath: string, filePath: string) {
-    if (path.isAbsolute(filePath)) {
-      return path.resolve(filePath);
-    } else {
-      return path.resolve(parentPath, filePath);
+      externalVisitors[modulePath] = templateVisitor;
     }
   }
 
@@ -65,7 +68,12 @@ export class ArmLangCompiler {
     filePath = path.resolve(filePath);
 
     if (!this.programCache[filePath]) {
-      const input = fs.readFileSync(filePath, { encoding: 'utf8' });
+      let input;
+      try {
+        input = fs.readFileSync(filePath, { encoding: 'utf8' });
+      } catch {
+        throw new Error(`Unable to load module '${filePath}'.`);
+      }
 
       const chars = new ANTLRInputStream(input);
       const lexer = new ArmLangLexer(chars);
@@ -79,36 +87,27 @@ export class ArmLangCompiler {
   
   private findModuleDependencies(inputPath: string, isModuleImport: boolean): string[] {
     const program = this.loadFile(inputPath);
-    const visitor = new ModuleImportVisitor(new GlobalScope(isModuleImport));
-    visitor.visit(program);
+    const scope = new GlobalScope(inputPath, isModuleImport);
+    const visitor = new ModuleImportVisitor(scope);
+    visitWithErrorHandling(scope, program, visitor);
   
     const parentPath = path.dirname(inputPath);
     const output = [];
     for (const discoveredPath of visitor.discoveredPaths) {
-      output.push(this.resolvePath(parentPath, discoveredPath));
+      output.push(resolvePath(parentPath, discoveredPath));
     }
   
     return output;
   }
 }
 
-function visit(context: ProgramContext, writer: TemplateWriter) {
-  const scope = new GlobalScope(false);
-  const visitors: AbstractArmVisitor[] = [
-    new ScopePopulatorVisitor(scope),
-    new ScopeCheckVisitor(scope),
-    new DependencyBuilderVisitor(scope),
-    new TemplateGeneratorVisitor(scope, writer),
-  ];
-
-  for (const visitor of visitors) {
-    context.accept(visitor);
-    if (scope.errors.length > 0) {
-      for (const error of scope.errors) {
-        console.error(error.message);
-      }
-
-      throw new Error(`Parsing failed: \n${scope.errors.map(e => e.message).join('\n')}`);
+function visitWithErrorHandling(scope: GlobalScope, context: ProgramContext, visitor: AbstractArmVisitor) {
+  context.accept(visitor);
+  if (scope.errors.length > 0) {
+    for (const error of scope.errors) {
+      console.error(error.message);
     }
+
+    throw new Error(`Parsing failed: \n${scope.errors.map(e => e.message).join('\n')}`);
   }
 }

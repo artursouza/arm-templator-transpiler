@@ -1,4 +1,4 @@
-import { ResourceContext, InputDeclContext, OutputDeclContext } from '../antlr4/ArmLangParser';
+import { ResourceContext, InputDeclContext, OutputDeclContext, SectionContext, ModuleContext } from '../antlr4/ArmLangParser';
 import { parseAstString, parseModuleTypeString, AbstractArmVisitor, GlobalScope } from './common';
 
 export class ModuleImportVisitor extends AbstractArmVisitor {
@@ -31,5 +31,9 @@ export class ModuleImportVisitor extends AbstractArmVisitor {
     if (path) {
       this.discoveredPaths.add(path);
     }
+  }
+
+  visitModule(ctx: ModuleContext) {
+    // do nothing here
   }
 }

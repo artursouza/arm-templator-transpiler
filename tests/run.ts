@@ -3,25 +3,13 @@ import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import { ArmLangCompiler } from '../src/compiler';
-import { TemplateWriter } from '../src/visitors/common';
+import { TemplateStringWriter } from '../src/templatestringwriter';
 
 function expectEqualIgnoringLineEndings(actual: string, expected: string) {
   actual = actual.replace(/\r/g, '');
   expected = expected.replace(/\r/g, '');
 
   expect(actual).to.equal(expected);
-}
-
-class TemplateStringWriter implements TemplateWriter {
-  private templateJson: string = '';
-
-  write(template: any): void {
-    this.templateJson = JSON.stringify(template, null, 2);
-  }
-
-  read() {
-    return this.templateJson;
-  }
 }
 
 function testTemplateGeneration(input: string, output: string) {
@@ -42,4 +30,5 @@ function testTemplateGeneration(input: string, output: string) {
 describe('Template generation', () => {
   it('basic', () => testTemplateGeneration('./basic.arm', './basic.json'));
   it('module', () => testTemplateGeneration('./module.arm', './module.json'));
+  it('external module', () => testTemplateGeneration('./ext_module.arm', './ext_module.json'));
 });

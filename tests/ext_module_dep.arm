@@ -1,0 +1,13 @@
+module testModule {
+  input string name
+  input object input1
+  input string input2
+
+  resource azrm 'network/mockResource@2019-01-01' mockResource {
+    name: name
+    properties: {
+      input1: input1
+      input2: input2
+    }
+  }
+}

@@ -1,4 +1,5 @@
-import { Dictionary } from "lodash";
+import { Dictionary, uniq } from "lodash";
+import { Scope } from "./visitors/common";
 
 export class DependencyNode {
   public readonly children: Dictionary<DependencyNode> = {};
@@ -72,7 +73,11 @@ export function getDependencyOrder(nodes: Dictionary<DependencyNode>) {
   return dependencyOrder;
 }
 
-export function findDependencyCycle(originalIdentifier: string, identifier: string, nodes: Dictionary<DependencyNode>, visited: Set<string>): string[] | undefined {
+export function findDependencyCycle(identifier: string, nodes: Dictionary<DependencyNode>) {
+  return findDependencyCycleRecursive(identifier, identifier, nodes, new Set<string>());
+}
+
+function findDependencyCycleRecursive(originalIdentifier: string, identifier: string, nodes: Dictionary<DependencyNode>, visited: Set<string>): string[] | undefined {
   const dependencies = nodes[identifier].children;
   for (const dependency of Object.keys(dependencies)) {
     if (visited.has(dependency)) {
@@ -84,9 +89,24 @@ export function findDependencyCycle(originalIdentifier: string, identifier: stri
     }
 
     visited.add(dependency);
-    const result = findDependencyCycle(originalIdentifier, dependency, nodes, visited);
+    const result = findDependencyCycleRecursive(originalIdentifier, dependency, nodes, visited);
     if (result) {
       return [dependency, ...result];
     }
   }
+}
+
+export function getResourceDependencies(scope: Scope, identifier: string): string[] {
+  const output = [];
+  const children = scope.dependencies[identifier].children;
+  for (const child of Object.keys(children)) {
+    if (scope.resources.has(child)) {
+      output.push(child);
+    } else {
+      const childDependencies = getResourceDependencies(scope, child);
+      output.push(...childDependencies);
+    }
+  }
+
+  return uniq(output);
 }

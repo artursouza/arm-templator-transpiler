@@ -2,20 +2,7 @@ import fs from 'fs';
 import { argv } from 'process';
 import path from 'path';
 import { ArmLangCompiler } from '../src/compiler';
-import { TemplateWriter } from '../src/visitors/common';
-
-class TemplateFileWriter implements TemplateWriter {
-  private readonly filePath: string;
-
-  constructor(filePath: string) {
-    this.filePath = filePath;
-  }
-
-  write(template: any): void {
-    const templateJson = JSON.stringify(template, null, 2);
-    fs.writeFileSync(this.filePath, templateJson, {encoding:'utf8'});
-  }
-}
+import { TemplateStringWriter } from '../src/templatestringwriter';
 
 if (!argv[2]) {
   throw new Error(`Please supply a file to watch.`);
@@ -31,20 +18,22 @@ const stat = fs.statSync(filePath);
 if (!stat.isFile()) {
   throw new Error(`Unable to watch file ${filePath}.`);
 }
-const writer = new TemplateFileWriter(outputfilePath);
-
-recompile(filePath, writer);
+recompile(filePath);
 fs.watchFile(filePath, (cur, prev) => {
-  recompile(filePath, writer);
+  recompile(filePath);
 });
 
-function recompile(inputFile: string, writer: TemplateWriter) {
+function recompile(inputFile: string) {
   try {
     console.clear();
     console.log('Compiling...');
 
+    const writer = new TemplateStringWriter();
     const compiler = new ArmLangCompiler();
     compiler.transpile(inputFile, writer);
+
+    const output = writer.read();
+    fs.writeFileSync(outputfilePath, output, {encoding:'utf8'});
 
     console.clear();
     console.log('Compiled');
