@@ -2,6 +2,7 @@ import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor
 import { ArmLangVisitor } from '../antlr4/ArmLangVisitor';
 import { Dictionary } from 'lodash';
 import { Token } from 'antlr4ts';
+import { DependencyNode } from '../dependencies';
 
 export abstract class Scope {
   public inputs: Dictionary<string> = {};
@@ -11,8 +12,13 @@ export abstract class Scope {
 }
 
 export class GlobalScope extends Scope {
+  constructor(isModuleImport: boolean) {
+    super();
+    this.isModuleImport = isModuleImport;
+  }
   public errors: Error[] = [];
   public modules: Dictionary<ModuleScope> = {};
+  public isModuleImport: boolean;
 }
 
 export class ModuleScope extends Scope {
@@ -22,10 +28,6 @@ export class ModuleScope extends Scope {
   }
 
   public external: boolean;
-}
-
-export class DependencyNode {
-  public readonly children: Dictionary<DependencyNode> = {};
 }
 
 export abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> implements ArmLangVisitor<void> {
@@ -50,4 +52,23 @@ export abstract class AbstractArmVisitor extends AbstractParseTreeVisitor<void> 
 
 export interface TemplateWriter {
   write(template: any): void;
+}
+
+export function parseModuleTypeString(type: string) {
+  let splitType = type.split('@');
+  if (splitType.length > 1) {
+    throw new Error(`Unable to parse module type '${type}'`);
+  }
+
+  return {
+    name: splitType.length === 1 ? splitType[0] : splitType[1],
+    path: splitType.length === 1 ? splitType[1] : undefined,
+  };
+}
+
+export function parseAstString(input: string) {
+  return input
+    .substring(1, input.length - 1)
+    .replace(/\\\'/g, '\'')
+    .replace(/\\\\/g, '\\');
 }

@@ -28,11 +28,10 @@ function testTemplateGeneration(input: string, output: string) {
   input = path.resolve(__dirname, input);
   output = path.resolve(__dirname, output);
 
-  const inputData = fs.readFileSync(input, { encoding: 'utf8' });
   const outputData = fs.readFileSync(output, { encoding: 'utf8' });
 
   const writer = new TemplateStringWriter();
-  execute(inputData, writer)
+  execute(input, writer)
 
   //fs.writeFileSync(output, writer.read(), {encoding:'utf8'});
 

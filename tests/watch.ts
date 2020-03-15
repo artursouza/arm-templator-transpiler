@@ -5,15 +5,15 @@ import { execute } from '../src/execute';
 import { TemplateWriter } from '../src/visitors/common';
 
 class TemplateFileWriter implements TemplateWriter {
-  private readonly fileName: string;
+  private readonly filePath: string;
 
-  constructor(fileName: string) {
-    this.fileName = fileName;
+  constructor(filePath: string) {
+    this.filePath = filePath;
   }
 
   write(template: any): void {
     const templateJson = JSON.stringify(template, null, 2);
-    fs.writeFileSync(this.fileName, templateJson, {encoding:'utf8'});
+    fs.writeFileSync(this.filePath, templateJson, {encoding:'utf8'});
   }
 }
 
@@ -21,30 +21,29 @@ if (!argv[2]) {
   throw new Error(`Please supply a file to watch.`);
 }
 
-const fileName = path.resolve(argv[2]);
-if (path.extname(fileName) !== '.arm') {
-  throw new Error(`File ${fileName} must have extension '.arm'.`);
+const filePath = path.resolve(argv[2]);
+if (path.extname(filePath) !== '.arm') {
+  throw new Error(`File ${filePath} must have extension '.arm'.`);
 }
-const outputFileName = fileName.slice(0, -4) + '.json';
+const outputfilePath = filePath.slice(0, -4) + '.json';
 
-const stat = fs.statSync(fileName);
+const stat = fs.statSync(filePath);
 if (!stat.isFile()) {
-  throw new Error(`Unable to watch file ${fileName}.`);
+  throw new Error(`Unable to watch file ${filePath}.`);
 }
-const writer = new TemplateFileWriter(outputFileName);
+const writer = new TemplateFileWriter(outputfilePath);
 
-recompile(fileName, writer);
-fs.watchFile(fileName, (cur, prev) => {
-  recompile(fileName, writer);
+recompile(filePath, writer);
+fs.watchFile(filePath, (cur, prev) => {
+  recompile(filePath, writer);
 });
 
 function recompile(inputFile: string, writer: TemplateWriter) {
   try {
     console.clear();
     console.log('Compiling...');
-    const input = fs.readFileSync(inputFile, { encoding: 'utf8' });
 
-    execute(input, writer);
+    execute(inputFile, writer);
 
     console.clear();
     console.log('Compiled');

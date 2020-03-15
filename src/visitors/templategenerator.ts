@@ -1,7 +1,7 @@
 import { ProgramContext, ResourceContext, ObjectContext, PropertyContext, ArrayContext, InputDeclContext, OutputDeclContext, VariableContext, ModuleContext } from '../antlr4/ArmLangParser';
 import { Dictionary, keyBy, uniq, difference } from 'lodash';
-import { AbstractArmVisitor, Scope, GlobalScope, TemplateWriter } from './common';
-import { getDependencyOrder } from './dependencybuilder';
+import { AbstractArmVisitor, Scope, GlobalScope, TemplateWriter, parseAstString, parseModuleTypeString } from './common';
+import { getDependencyOrder } from '../dependencies';
 
 const providerLookup: Dictionary<string> = {
   network: 'Microsoft.Network',
@@ -25,18 +25,6 @@ function parseAzrmTypeString(type: string) {
   };
 }
 
-function parseModuleTypeString(type: string) {
-  let splitType = type.split('@');
-  if (splitType.length > 1) {
-    throw new Error(`Unable to parse module type '${type}'`);
-  }
-
-  return {
-    name: splitType.length === 1 ? splitType[0] : splitType[1],
-    path: splitType.length === 1 ? splitType[1] : undefined,
-  };
-}
-
 function formatFunction(name: string, params: any[], isTopLevel: boolean) {
   const paramValues = [];
   for (const param of params) {
@@ -48,13 +36,6 @@ function formatFunction(name: string, params: any[], isTopLevel: boolean) {
   }
   const output = `${name}(${paramValues.join(', ')})`;
   return isTopLevel ? `[${output}]` : output;
-}
-
-function parseAstString(input: string) {
-  return input
-    .substring(1, input.length - 1)
-    .replace(/\\\'/g, '\'')
-    .replace(/\\\\/g, '\\');
 }
 
 function toParamString(input: string) {
