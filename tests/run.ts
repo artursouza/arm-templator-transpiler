@@ -2,7 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
-import { execute } from '../src/execute';
+import { ArmLangCompiler } from '../src/compiler';
 import { TemplateWriter } from '../src/visitors/common';
 
 function expectEqualIgnoringLineEndings(actual: string, expected: string) {
@@ -30,8 +30,9 @@ function testTemplateGeneration(input: string, output: string) {
 
   const outputData = fs.readFileSync(output, { encoding: 'utf8' });
 
+  const compiler = new ArmLangCompiler();
   const writer = new TemplateStringWriter();
-  execute(input, writer)
+  compiler.transpile(input, writer);
 
   //fs.writeFileSync(output, writer.read(), {encoding:'utf8'});
 

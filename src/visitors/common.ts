@@ -56,13 +56,13 @@ export interface TemplateWriter {
 
 export function parseModuleTypeString(type: string) {
   let splitType = type.split('@');
-  if (splitType.length > 1) {
+  if (splitType.length > 2) {
     throw new Error(`Unable to parse module type '${type}'`);
   }
 
   return {
-    name: splitType.length === 1 ? splitType[0] : splitType[1],
-    path: splitType.length === 1 ? splitType[1] : undefined,
+    name: splitType.length === 2 ? splitType[1] : splitType[0],
+    path: splitType.length === 2 ? splitType[0] : undefined,
   };
 }
 

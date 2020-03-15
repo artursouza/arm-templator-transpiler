@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { argv } from 'process';
 import path from 'path';
-import { execute } from '../src/execute';
+import { ArmLangCompiler } from '../src/compiler';
 import { TemplateWriter } from '../src/visitors/common';
 
 class TemplateFileWriter implements TemplateWriter {
@@ -43,7 +43,8 @@ function recompile(inputFile: string, writer: TemplateWriter) {
     console.clear();
     console.log('Compiling...');
 
-    execute(inputFile, writer);
+    const compiler = new ArmLangCompiler();
+    compiler.transpile(inputFile, writer);
 
     console.clear();
     console.log('Compiled');
