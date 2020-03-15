@@ -1,0 +1,16 @@
+"namePrefix": {
+    "type": "string",
+    "defaultValue": "abc123"
+  },
+  "location": {
+    "type": "string",
+    "defaultValue": "eastus"
+  },
+  "adminUsername": {
+    "type": "string",
+    "defaultValue": "alfran"
+  },
+  "adminPassword": {
+    "type": "string",
+    "defaultValue": "P@ssw0rd123456"
+  }

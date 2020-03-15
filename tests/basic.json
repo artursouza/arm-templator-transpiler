@@ -2,10 +2,13 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "location": {
+    "rgLocation": {
       "type": "string"
     },
     "namePrefix": {
+      "type": "string"
+    },
+    "myNewParam": {
       "type": "string"
     },
     "nicName": {
@@ -15,18 +18,9 @@
   "resources": [
     {
       "apiVersion": "2019-11-01",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[concat(parameters('namePrefix'), '-pip')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "publicIPAllocationMethod": "Dynamic"
-      }
-    },
-    {
-      "apiVersion": "2019-11-01",
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[concat(parameters('namePrefix'), '-subnet')]",
-      "location": "[parameters('location')]",
+      "location": "[parameters('rgLocation')]",
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
@@ -37,9 +31,18 @@
     },
     {
       "apiVersion": "2019-11-01",
+      "type": "Microsoft.Network/publicIpAddresses",
+      "name": "myPipName",
+      "location": "[parameters('rgLocation')]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "apiVersion": "2019-11-01",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(parameters('namePrefix'), '-nic')]",
-      "location": "[parameters('location')]",
+      "location": "[parameters('rgLocation')]",
       "properties": {
         "ipConfigurations": [
           {
