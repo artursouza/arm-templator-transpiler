@@ -32,7 +32,7 @@ export class ScopePopulatorVisitor extends AbstractArmVisitor {
       this.addError(`Identifier '${identifier}' has already been declared.`, ctx.Identifier(1).symbol);
     }
 
-    this.currentScope.resources.push(identifier);
+    this.currentScope.resources.add(identifier);
     this.currentScope.identifiers[identifier] = ctx.Identifier(1).symbol;
   }
 

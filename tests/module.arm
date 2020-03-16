@@ -1,0 +1,48 @@
+input string rgLocation
+
+resource azrm 'network/mockResource@2019-01-01' mockResource {
+  name: 'test1'
+  location: rgLocation
+}
+
+resource azrm 'network/mockResource@2019-01-01' mockResource2 {
+  name: 'test1'
+  location: rgLocation
+}
+
+variable myVar1 {
+  test1: resourceId(mockResource)
+  test2: rgLocation
+}
+
+module testModule {
+  input string name
+  input object input1
+  input string input2
+
+  resource azrm 'network/mockResource@2019-01-01' mockResource {
+    name: name
+    properties: {
+      input1: input1
+      input2: input2
+    }
+  }
+}
+
+resource mod 'testModule' myMod1 {
+  name: 'test2'
+  input1: myVar1
+  input2: rgLocation
+}
+
+resource mod 'testModule' myMod2 {
+  name: 'test3'
+  input1: resourceId(mockResource)
+  input2: rgLocation
+}
+
+resource mod 'testModule' myMod3 {
+  name: 'test4'
+  input1: mockResource.properties.test1
+  input2: mockResource.test2
+}

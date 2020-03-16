@@ -1,7 +1,10 @@
 import { ProgramContext, ResourceContext, ObjectContext, PropertyContext, ArrayContext, InputDeclContext, OutputDeclContext, VariableContext, ModuleContext } from '../antlr4/ArmLangParser';
 import { Dictionary, keyBy, uniq, difference } from 'lodash';
-import { AbstractArmVisitor, Scope, GlobalScope, TemplateWriter } from './common';
-import { getDependencyOrder } from './dependencybuilder';
+import { AbstractArmVisitor, Scope, GlobalScope, TemplateWriter, parseAstString, parseModuleTypeString, resolvePath } from './common';
+import { getDependencyOrder, getResourceDependencies } from '../dependencies';
+import path from 'path';
+
+type InputCallFunction = (isTopLevel: boolean) => any;
 
 const providerLookup: Dictionary<string> = {
   network: 'Microsoft.Network',
@@ -10,29 +13,18 @@ const providerLookup: Dictionary<string> = {
 }
 
 function parseAzrmTypeString(type: string) {
-  let provider = type.split('/')[0];
+  const [typeString, apiVersion] = type.split('@');
+  let [provider, ...typeArray] = typeString.split('/');
+
   if (providerLookup[provider]) {
     provider = providerLookup[provider];
   }
 
-  let apiVersion = type.split('@')[1];
-  let fullType = `${provider}/${type.split('/')[1].split('@')[0]}`
+  let fullType = `${provider}/${typeArray.join('/')}`
 
   return {
     apiVersion,
     fullType,
-  };
-}
-
-function parseModuleTypeString(type: string) {
-  let splitType = type.split('@');
-  if (splitType.length > 1) {
-    throw new Error(`Unable to parse module type '${type}'`);
-  }
-
-  return {
-    name: splitType.length === 1 ? splitType[0] : splitType[1],
-    path: splitType.length === 1 ? splitType[1] : undefined,
   };
 }
 
@@ -47,13 +39,6 @@ function formatFunction(name: string, params: any[], isTopLevel: boolean) {
   }
   const output = `${name}(${paramValues.join(', ')})`;
   return isTopLevel ? `[${output}]` : output;
-}
-
-function parseAstString(input: string) {
-  return input
-    .substring(1, input.length - 1)
-    .replace(/\\\'/g, '\'')
-    .replace(/\\\\/g, '\\');
 }
 
 function toParamString(input: string) {
@@ -71,20 +56,17 @@ function toExpressionString(input: string) {
   return input;
 }
 
-function findResourceDependencies(identifier: string, scope: Scope) {
-  const dependencies = scope.dependencies[identifier].children;
-
-  const resourceDependencies: string[] = [];
-  for (const child of Object.keys(dependencies)) {
-    if (scope.resources.indexOf(child) !== -1) {
-      resourceDependencies.push(child);
+function toResourceIdExpression(resource: any, isTopLevel: boolean) {
+  // TODO very hacky - fix this!
+  function unescapeExpression(input: string) {
+    if (input.length >= 2 && input[0] === '[' && input[input.length -1] === ']') {
+      return input.substring(1, input.length -1);
     } else {
-      const childDependencies = findResourceDependencies(child, scope);
-      resourceDependencies.push(...childDependencies);
+      return toParamString(input);
     }
   }
 
-  return uniq(resourceDependencies);
+  return formatFunction('resourceId', [unescapeExpression(resource.type), unescapeExpression(resource.name)], isTopLevel);
 }
 
 class ScopeState {
@@ -92,27 +74,23 @@ class ScopeState {
     this.scope = scope;
   }
   scope: Scope;
-  variables: Dictionary<any> = {};
+  variables: Dictionary<(isTopLevel: boolean) => any> = {};
   resources: Dictionary<any> = {};
 }
 
-class TemplateData {
-  parameters: Dictionary<any> = {};
-  resources: any[] = [];
-  outputs: Dictionary<any> = {};
-}
-
-export class TemplateGeneratorVisitor extends AbstractArmVisitor {
-  constructor(globalScope: GlobalScope, writer: TemplateWriter) {
+export class TemplateVisitor extends AbstractArmVisitor {
+  constructor(globalScope: GlobalScope, writer: TemplateWriter, externalVisitors: Dictionary<TemplateVisitor>) {
     super(globalScope);
     this.writer = writer;
+    this.externalVisitors = externalVisitors;
   }
 
+  private parameterNames = new Set<string>();
   private writer: TemplateWriter;
   private globalState: ScopeState = new ScopeState(this.globalScope);
   private currentState: ScopeState = this.globalState;
-  private template: TemplateData = new TemplateData();
-  private moduleCtxts: Dictionary<ModuleContext> = {};
+  public modules: Dictionary<(ctx: ResourceContext, inputs: Dictionary<(isTopLevel: boolean) => any>) => void> = {};
+  public externalVisitors: Dictionary<TemplateVisitor>
   
   visitInDependencyOrder(scope: Scope, resourceCtxts: ResourceContext[], variableCtxts: VariableContext[]) {
     // important to visit in dependency order so that we don't end up with 
@@ -143,6 +121,11 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       this.visitModule(moduleCtx);
     }
 
+    // don't want to generate a template for module imports
+    if (this.globalScope.isModuleImport) {
+      return;
+    }
+
     const inputCtxts = ctx.section().map(s => s.inputDecl()).filter(x => x !== undefined) as InputDeclContext[];
     const outputCtxts = ctx.section().map(s => s.outputDecl()).filter(x => x !== undefined) as OutputDeclContext[];
     const resourceCtxts = ctx.section().map(s => s.resource()).filter(x => x != undefined) as ResourceContext[];
@@ -157,22 +140,10 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     for (const outputCtx of outputCtxts) {
       this.visitOutputDecl(outputCtx);
     }
-
-    // TODO visit modules
-
-    const template = {
-      $schema: 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#',
-      contentVersion: '1.0.0.0',
-      parameters: this.template.parameters,
-      resources: this.template.resources,
-      outputs: this.template.outputs,
-    };
-
-    this.writer.write(template);
   }
 
   visitVariable(ctx: VariableContext) {
-    this.currentState.variables[ctx.Identifier().text] = this.visitTopLevelProperty(ctx.property());
+    this.currentState.variables[ctx.Identifier().text] = isTopLevel => this.visitPropertyInternal(ctx.property(), isTopLevel);
   }
 
   visitInputDecl(ctx: InputDeclContext) {
@@ -180,9 +151,10 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     const type = ctx.type().text;
 
     if (this.currentState === this.globalState) {
-      this.template.parameters[name] = {
+      this.parameterNames.add(name);
+      this.writer.writeParameter(name, {
         type: type,
-      };
+      });
     }
   }
 
@@ -191,20 +163,20 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     const value = this.visitTopLevelProperty(ctx.property());
 
     if (this.currentState === this.globalState) {
-      this.template.outputs[name] = {
+      this.writer.writeOutput(name, {
         // TODO add other types for output
         type: 'string',
         value: value,
-      };
+      });
     }
   }
 
   visitAzrmResource(ctx: ResourceContext) {
     const identifier = ctx.Identifier(1).text;
-    const resourceDependencies = findResourceDependencies(identifier, this.currentState.scope);
+    const resourceDependencies = getResourceDependencies(this.currentState.scope, identifier);
     const dependsOn = [];
     for (const resource of resourceDependencies) {
-      const resourceIdExpression = formatFunction('resourceId', [this.unescapeExpression(this.currentState.resources[resource].type), this.unescapeExpression(this.currentState.resources[resource].name)], true);
+      const resourceIdExpression = toResourceIdExpression(this.currentState.resources[resource], true);
       dependsOn.push(resourceIdExpression);
     }
 
@@ -218,24 +190,30 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       dependsOn: dependsOn.length > 0 ? dependsOn : undefined,
     };
 
-    this.template.resources.push(resource);
+    this.writer.writeResource(resource);
     this.currentState.resources[ctx.Identifier(1).text] = resource;
   }
 
   visitModuleResource(ctx: ResourceContext) {
-    const identifier = ctx.Identifier(1).text;
-    const { name, path } = parseModuleTypeString(parseAstString(ctx.String().text));
+    const module = parseModuleTypeString(parseAstString(ctx.String().text));
+    const givenInputs = keyBy(ctx.object().objectProperty(), i => i.Identifier().text);
 
-    if (path) {
-      throw this.buildError(`Unable to process ${identifier} - file-based modules are not yet implemented`, ctx.Identifier(1).symbol);
+    const currentState = this.currentState;
+    const inputs: Dictionary<InputCallFunction> = {};
+    for (const inputName of Object.keys(givenInputs)) {
+      inputs[inputName] = isTopLevel => this.doWithNewState(currentState, () => {
+        return this.visitPropertyInternal(givenInputs[inputName].property(), isTopLevel);
+      });
     }
 
-    const moduleScope = this.globalScope.modules[name];
-    if (!moduleScope) {
-      throw this.buildError(`Unable to find module '${name}'`, ctx.Identifier(1).symbol);
-    }
+    if (module.path) {
+      const parentPath = path.dirname(this.globalScope.filePath);
+      const modulePath = resolvePath(parentPath, module.path);
 
-    this.callModule(name, ctx);
+      this.externalVisitors[modulePath].callModule(module.name, ctx, inputs);
+    } else {
+      this.callModule(module.name, ctx, inputs);
+    }
   }
 
   visitResource(ctx: ResourceContext) {
@@ -253,46 +231,58 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
       }
   }
 
-  callModule(name: string, ctx: ResourceContext) {
-    const moduleCtx = this.moduleCtxts[name];
+  callModule(name: string, ctx: ResourceContext, inputs: Dictionary<InputCallFunction>) {
+    const moduleFunc = this.modules[name];
+    if (!moduleFunc) {
+      throw this.buildError(`Unable to find module '${moduleFunc}'`, ctx.Identifier(1).symbol);
+    }
+
+    moduleFunc(ctx, inputs);
+  }
+
+  doWithNewState<T>(newState: ScopeState, action: () => T) {
+    const oldState = this.currentState;
+    this.currentState = newState;
+    try {
+      return action();
+    } finally {
+      this.currentState = oldState;
+    }
+  }
+
+  visitModule(moduleCtx: ModuleContext) {
+    const name = moduleCtx.Identifier().text;
+    const moduleScope = this.globalScope.modules[name];
+    const moduleState = this.currentState;
+
     const resourceCtxts = moduleCtx.section().map(s => s.resource()).filter(x => x != undefined) as ResourceContext[];
     const variableCtxts = moduleCtx.section().map(s => s.variable()).filter(x => x !== undefined) as VariableContext[];
 
-    const moduleScope = this.globalScope.modules[name];
+    this.modules[name] = (ctx, givenInputs) => {
+      // ctx: the 'outer' scope (caller of the module)
+      // moduleCtx: the 'inner' scop (the module itself)
 
-    const givenInputs = keyBy(ctx.object().objectProperty(), i => i.Identifier().text);
-    const givenInputNames = Object.keys(givenInputs);
-  
-    const requiredInputNames = Object.keys(moduleScope.inputs);
+      this.doWithNewState(new ScopeState(moduleScope), () => {
+        const givenInputNames = Object.keys(givenInputs);
+        const requiredInputNames = Object.keys(moduleScope.inputs);
 
-    const requiredNotGiven = difference(requiredInputNames, givenInputNames);
-    if (requiredNotGiven.length > 0) {
-      throw this.buildError(`Missing required input(s) for module '${name}': '${requiredNotGiven.join('\', \'')}'.`, ctx.Identifier(1).symbol);
+        const requiredNotGiven = difference(requiredInputNames, givenInputNames);
+        if (requiredNotGiven.length > 0) {
+          throw this.buildError(`Missing required input(s) for module '${name}': '${requiredNotGiven.join('\', \'')}'.`, ctx.Identifier(1).symbol);
+        }
+
+        const givenNotRequired = difference(givenInputNames, requiredInputNames);
+        if (givenNotRequired.length > 0) {
+          throw this.buildError(`Unexpected extraneous input(s) for module '${name}': '${givenNotRequired.join('\', \'')}'.`, ctx.Identifier(1).symbol);
+        }
+
+        for (const inputName of givenInputNames) {
+          this.currentState.variables[inputName] = givenInputs[inputName];
+        }
+
+        this.visitInDependencyOrder(moduleScope, resourceCtxts, variableCtxts);
+      });
     }
-
-    const givenNotRequired = difference(givenInputNames, requiredInputNames);
-    if (givenNotRequired.length > 0) {
-      throw this.buildError(`Unexpected extraneous input(s) for module '${name}': '${givenNotRequired.join('\', \'')}'.`, ctx.Identifier(1).symbol);
-    }
-
-    const oldState = this.currentState;
-    const newState = new ScopeState(moduleScope);
-
-    for (const inputName of givenInputNames) {
-      newState.variables[inputName] = this.visitTopLevelProperty(givenInputs[inputName].property());
-    }
-
-    this.currentState = newState;
-
-    this.visitInDependencyOrder(moduleScope, resourceCtxts, variableCtxts);
-
-    this.currentState = oldState;
-  }
-
-  visitModule(ctx: ModuleContext) {
-    const name = ctx.Identifier().text;
-
-    this.moduleCtxts[name] = ctx;
   }
 
   visitObject(ctx: ObjectContext) {
@@ -319,15 +309,6 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
     }
 
     return output;
-  }
-
-  unescapeExpression(input: string) {
-    // TODO very hacky - fix this!
-    if (input.length >= 2 && input[0] === '[' && input[input.length -1] === ']') {
-      return input.substring(1, input.length -1);
-    } else {
-      return toParamString(input);
-    }
   }
 
   visitTopLevelProperty(ctx: PropertyContext): any {
@@ -362,12 +343,41 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
 
     const identifierCallCtx = ctx.identifierCall();
     if (identifierCallCtx) {
-      if (this.currentState.variables[identifierCallCtx.text]) {
-        return this.currentState.variables[identifierCallCtx.text];
+      const identifier = identifierCallCtx.Identifier();
+
+      if (this.currentState.variables[identifier.text]) {
+        return this.currentState.variables[identifier.text](isTopLevel);
       }
 
-      if (this.template.parameters[identifierCallCtx.text]) {
-        return formatFunction('parameters', [toParamString(identifierCallCtx.text)], isTopLevel);
+      if (this.currentState.resources[identifier.text]) {
+        const resource = this.currentState.resources[identifier.text];
+
+        let propertyTail = ctx.propertyTail();
+        if (propertyTail?.propertyCall() === undefined) {
+          throw this.buildError(`Invalid resource reference`, identifier.symbol);
+        }
+
+        const properties: string[] = [];
+        while (propertyTail?.propertyCall() !== undefined) {
+          const property = propertyTail?.propertyCall()?.text as string;
+
+          properties.push(property);
+          propertyTail = propertyTail.propertyTail();
+        }
+
+        if (properties[0] === 'properties') {
+          const reference = formatFunction('reference', [toResourceIdExpression(resource, false)], false);
+          const output = `${reference}.${properties.slice(1).join('.')}`;
+          return isTopLevel ? `[${output}]` : output;
+        } else {
+          const reference = formatFunction('reference', [toResourceIdExpression(resource, false), toParamString(resource.apiVersion), toParamString('full')], false);
+          const output = `${reference}.${properties.join('.')}`;
+          return isTopLevel ? `[${output}]` : output;
+        }
+      }
+
+      if (this.parameterNames.has(identifier.text)) {
+        return formatFunction('parameters', [toParamString(identifier.text)], isTopLevel);
       }
 
       throw this.buildError(`Direct references to resources are not yet supported!`, identifierCallCtx.Identifier().symbol);
@@ -391,7 +401,7 @@ export class TemplateGeneratorVisitor extends AbstractArmVisitor {
           const resource = this.currentState.resources[identifier];
 
           // TODO improve this
-          return formatFunction('resourceId', [this.unescapeExpression(resource.type), this.unescapeExpression(resource.name)], isTopLevel);
+          return toResourceIdExpression(resource, isTopLevel);
         default:
           const params = functionCallCtx.property().map(p => this.visitFunctionParamProperty(p));
 

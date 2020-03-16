@@ -18,15 +18,11 @@
   "resources": [
     {
       "apiVersion": "2019-11-01",
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[concat(parameters('namePrefix'), '-subnet')]",
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "name": "[concat('myVnet/', parameters('namePrefix'), '-subnet')]",
       "location": "[parameters('rgLocation')]",
       "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/24"
-          ]
-        }
+        "addressPrefix": "10.0.0.0/24"
       }
     },
     {
@@ -49,7 +45,7 @@
             "name": "myConfig",
             "properties": {
               "subnet": {
-                "id": "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', concat('myVnet/', parameters('namePrefix'), '-subnet'))]"
               },
               "privateIPAllocationMethod": "Dynamic"
             }
@@ -57,7 +53,7 @@
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), '-subnet'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', concat('myVnet/', parameters('namePrefix'), '-subnet'))]"
       ]
     }
   ],

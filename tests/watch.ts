@@ -1,50 +1,39 @@
 import fs from 'fs';
 import { argv } from 'process';
 import path from 'path';
-import { execute } from '../src/execute';
-import { TemplateWriter } from '../src/visitors/common';
-
-class TemplateFileWriter implements TemplateWriter {
-  private readonly fileName: string;
-
-  constructor(fileName: string) {
-    this.fileName = fileName;
-  }
-
-  write(template: any): void {
-    const templateJson = JSON.stringify(template, null, 2);
-    fs.writeFileSync(this.fileName, templateJson, {encoding:'utf8'});
-  }
-}
+import { ArmLangCompiler } from '../src/compiler';
+import { TemplateStringWriter } from '../src/templatestringwriter';
 
 if (!argv[2]) {
   throw new Error(`Please supply a file to watch.`);
 }
 
-const fileName = path.resolve(argv[2]);
-if (path.extname(fileName) !== '.arm') {
-  throw new Error(`File ${fileName} must have extension '.arm'.`);
+const filePath = path.resolve(argv[2]);
+if (path.extname(filePath) !== '.arm') {
+  throw new Error(`File ${filePath} must have extension '.arm'.`);
 }
-const outputFileName = fileName.slice(0, -4) + '.json';
+const outputfilePath = filePath.slice(0, -4) + '.json';
 
-const stat = fs.statSync(fileName);
+const stat = fs.statSync(filePath);
 if (!stat.isFile()) {
-  throw new Error(`Unable to watch file ${fileName}.`);
+  throw new Error(`Unable to watch file ${filePath}.`);
 }
-const writer = new TemplateFileWriter(outputFileName);
-
-recompile(fileName, writer);
-fs.watchFile(fileName, (cur, prev) => {
-  recompile(fileName, writer);
+recompile(filePath);
+fs.watchFile(filePath, (cur, prev) => {
+  recompile(filePath);
 });
 
-function recompile(inputFile: string, writer: TemplateWriter) {
+function recompile(inputFile: string) {
   try {
     console.clear();
     console.log('Compiling...');
-    const input = fs.readFileSync(inputFile, { encoding: 'utf8' });
 
-    execute(input, writer);
+    const writer = new TemplateStringWriter();
+    const compiler = new ArmLangCompiler();
+    compiler.transpile(inputFile, writer);
+
+    const output = writer.read();
+    fs.writeFileSync(outputfilePath, output, {encoding:'utf8'});
 
     console.clear();
     console.log('Compiled');
