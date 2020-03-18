@@ -1,0 +1,197 @@
+// Virtual machine size (has to be at least the size of Standard_A3 to support 2 NICs)
+input string virtualMachineSize
+// Default Admin username
+input string adminUsername
+// Default Admin password
+input string adminPassword
+// Storage Account type for the VM and VM diagnostic storage
+input string storageAccountType
+// Location for all resources.
+input string location
+
+variable virtualMachineName 'VM-MultiNic'
+variable nic1Name 'nic-1'
+variable nic2Name 'nic-2'
+variable virtualNetworkName 'virtualNetwork'
+variable subnet1Name 'subnet-1'
+variable subnet2Name 'subnet-2'
+variable publicIPAddressName 'publicIp'
+variable subnet1Ref concat(resourceId(vnet), '/subnets/', subnet1Name)
+variable subnet2Ref concat(resourceId(vnet), '/subnets/', subnet2Name)
+variable diagStorageAccountName concat('diags', uniqueString(resourceGroup().id))
+variable networkSecurityGroupName 'NSG'
+variable networkSecurityGroupName2 concat(subnet2Name, '-nsg')
+
+// This is the virtual machine that you're building.
+resource azrm 'compute/virtualMachines@2017-03-30' vm {
+  name: virtualMachineName
+  location: location
+  properties: {
+    osProfile: {
+      computerName: virtualMachineName
+      adminUsername: adminUsername
+      adminPassword: adminPassword
+      windowsConfiguration: {
+        provisionVmAgent: true
+      }
+    }
+    hardwareProfile: {
+      vmSize: virtualMachineSize
+    }
+    storageProfile: {
+      imageReference: {
+        publisher: 'MicrosoftWindowsServer'
+        offer: 'WindowsServer'
+        sku: '2016-Datacenter'
+        version: 'latest'
+      }
+      osDisk: {
+        createOption: 'FromImage'
+      }
+      dataDisks: []
+    }
+    networkProfile: {
+      networkInterfaces: [
+        {
+          properties: {
+            primary: true
+          }
+          id: resourceId(nic1)
+        }
+        {
+          properties: {
+            primary: false
+          }
+          id: resourceId(nic2)
+        }
+      ]
+    }
+    diagnosticsProfile: {
+      bootDiagnostics: {
+        enabled: true
+        storageUri: diagsAccount.properties.primaryEndpoints.blob
+      }
+    }
+  }
+}
+
+resource azrm 'storage/storageAccounts@2017-06-01' diagsAccount {
+  name: diagStorageAccountName
+  location: location
+  sku: {
+    name: storageAccountType
+  }
+  kind: 'Storage'
+}
+
+// Simple Network Security Group for subnet2
+resource azrm 'network/networkSecurityGroups@2019-08-01' nsg2 {
+  name: networkSecurityGroupName2
+  location: location
+}
+
+// This will build a Virtual Network.
+resource azrm 'network/virtualNetworks@2017-06-01' vnet {
+  name: virtualNetworkName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        '10.0.0.0/16'
+      ]
+    }
+    subnets: [
+      {
+        name: subnet1Name
+        properties: {
+          addressPrefix: '10.0.0.0/24'
+        }
+      }
+      {
+        name: subnet2Name
+        properties: {
+          addressPrefix: '10.0.1.0/24'
+          networkSecurityGroup: {
+            id: resourceId(nsg2)
+          }
+        }
+      }
+    ]
+  }
+}
+
+// This will be your Primary NIC
+resource azrm 'network/networkInterfaces@2017-06-01' nic1 {
+  name: nic1Name
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          subnet: {
+            id: subnet1Ref
+          }
+          privateIPAllocationMethod: 'Dynamic'
+          publicIpAddress: {
+            id: resourceId(pip)
+          }
+        }
+      }
+    ]
+    networkSecurityGroup: {
+      id: resourceId(nsg)
+    }
+  }
+}
+
+// This will be your Secondary NIC
+resource azrm 'network/networkInterfaces@2017-06-01' nic2 {
+  name: nic2Name
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          subnet: {
+            id: subnet2Ref
+          }
+          privateIPAllocationMethod: 'Dynamic'
+        }
+      }
+    ]
+  }
+}
+
+// Public IP for your Primary NIC
+resource azrm 'network/publicIPAddresses@2017-06-01' pip {
+  name: publicIPAddressName
+  location: location
+  properties: {
+    publicIPAllocationMethod: 'Dynamic'
+  }
+}
+
+// Network Security Group (NSG) for your Primary NIC
+resource azrm 'network/networkSecurityGroups@2016-09-01' nsg {
+  name: networkSecurityGroupName
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'default-allow-rdp'
+        properties: {
+          priority: 1000
+          sourceAddressPrefix: '*,'
+          protocol: 'Tcp'
+          destinationPortRange: 3389
+          access: 'Allow'
+          direction: 'Inbound'
+          sourcePortRange: '*,'
+          destinationAddressPrefix: '*'
+        }
+      }
+    ]
+  }
+}

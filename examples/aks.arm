@@ -1,0 +1,56 @@
+// The name of the Managed Cluster resource.
+input string clusterName
+// The location of the Managed Cluster resource.
+input string location
+// Optional DNS prefix to use with hosted Kubernetes API server FQDN.
+input string dnsPrefix
+// Disk size (in GB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize.
+input int osDiskSizeGB
+// The number of nodes for the cluster.
+input int agentCount
+// The size of the Virtual Machine.
+input string agentVMSize
+// User name for the Linux Virtual Machines.
+input string linuxAdminUsername
+// Configure all linux machines with the SSH RSA public key string. Your key should include three parts, for example 'ssh-rsa AAAAB...snip...UcyupgH azureuser@linuxvm'
+input string sshRSAPublicKey
+// Client ID (used by cloudprovider)
+input string servicePrincipalClientId
+// The Service Principal Client Secret.
+input securestring servicePrincipalClientSecret
+// The type of operating system.
+input string osType
+
+resource azrm 'Microsoft.ContainerService/managedClusters@2018-03-31' aks {
+  name: clusterName
+  location: location
+  properties: {
+    dnsPrefix: dnsPrefix
+    agentPoolProfiles: [
+      {
+        name: 'agentpool'
+        osDiskSizeGB: osDiskSizeGB
+        count: agentCount
+        vmSize: agentVMSize
+        osType: osType
+        storageProfile: 'ManagedDisks'
+      }
+    ]
+    linuxProfile: {
+      adminUsername: linuxAdminUsername
+      ssh: {
+        publicKeys: [
+          {
+            keyData: sshRSAPublicKey
+          }
+        ]
+      }
+    }
+    servicePrincipalProfile: {
+      clientId: servicePrincipalClientId
+      Secret: servicePrincipalClientSecret
+    }
+  }
+}
+
+output controlPlaneFQDN: aks.properties.fqdn

@@ -3,8 +3,9 @@ import { Dictionary, keyBy, uniq, difference } from 'lodash';
 import { AbstractArmVisitor, Scope, GlobalScope, TemplateWriter, parseAstString, parseModuleTypeString, resolvePath } from './common';
 import { getDependencyOrder, getResourceDependencies } from '../dependencies';
 import path from 'path';
+import { Token } from 'antlr4ts';
 
-type InputCallFunction = (isTopLevel: boolean) => any;
+type InputCallFunction = (isTopLevel: boolean, isParam: boolean) => any;
 
 const providerLookup: Dictionary<string> = {
   network: 'Microsoft.Network',
@@ -74,7 +75,7 @@ class ScopeState {
     this.scope = scope;
   }
   scope: Scope;
-  variables: Dictionary<(isTopLevel: boolean) => any> = {};
+  variables: Dictionary<InputCallFunction> = {};
   resources: Dictionary<any> = {};
 }
 
@@ -89,7 +90,7 @@ export class TemplateVisitor extends AbstractArmVisitor {
   private writer: TemplateWriter;
   private globalState: ScopeState = new ScopeState(this.globalScope);
   private currentState: ScopeState = this.globalState;
-  public modules: Dictionary<(ctx: ResourceContext, inputs: Dictionary<(isTopLevel: boolean) => any>) => void> = {};
+  public modules: Dictionary<(ctx: ResourceContext, inputs: Dictionary<InputCallFunction>) => void> = {};
   public externalVisitors: Dictionary<TemplateVisitor>
   
   visitInDependencyOrder(scope: Scope, resourceCtxts: ResourceContext[], variableCtxts: VariableContext[]) {
@@ -143,7 +144,7 @@ export class TemplateVisitor extends AbstractArmVisitor {
   }
 
   visitVariable(ctx: VariableContext) {
-    this.currentState.variables[ctx.Identifier().text] = isTopLevel => this.visitPropertyInternal(ctx.property(), isTopLevel);
+    this.currentState.variables[ctx.Identifier().text] = (isTopLevel, isParam) => this.visitPropertyInternal(ctx.property(), isTopLevel, isParam);
   }
 
   visitInputDecl(ctx: InputDeclContext) {
@@ -201,8 +202,8 @@ export class TemplateVisitor extends AbstractArmVisitor {
     const currentState = this.currentState;
     const inputs: Dictionary<InputCallFunction> = {};
     for (const inputName of Object.keys(givenInputs)) {
-      inputs[inputName] = isTopLevel => this.doWithNewState(currentState, () => {
-        return this.visitPropertyInternal(givenInputs[inputName].property(), isTopLevel);
+      inputs[inputName] = (isTopLevel, isParam) => this.doWithNewState(currentState, () => {
+        return this.visitPropertyInternal(givenInputs[inputName].property(), isTopLevel, isParam);
       });
     }
 
@@ -303,27 +304,30 @@ export class TemplateVisitor extends AbstractArmVisitor {
   }
 
   visitFunctionParamProperty(ctx: PropertyContext): any {
-    const output = this.visitProperty(ctx);
-    if (ctx.String()) {
-      return toParamString(output);
-    }
-
+    const output = this.visitPropertyInternal(ctx, false, true);
+ 
     return output;
   }
 
   visitTopLevelProperty(ctx: PropertyContext): any {
-    return this.visitPropertyInternal(ctx, true);
+    return this.visitPropertyInternal(ctx, true, false);
   }
 
   visitProperty(ctx: PropertyContext): any {
-    return this.visitPropertyInternal(ctx, false);
+    return this.visitPropertyInternal(ctx, false, false);
   }
 
-  visitPropertyInternal(ctx: PropertyContext, isTopLevel: boolean): any {
+  visitPropertyInternal(ctx: PropertyContext, isTopLevel: boolean, isParam: boolean): any {
     const stringText = ctx.String()?.text;
     if (stringText) {
       const output = parseAstString(stringText);
-      return isTopLevel ? toExpressionString(output) : output;
+      if (isTopLevel) {
+        return toExpressionString(output);
+      }
+      if (isParam) {
+        return toParamString(output);
+      }
+      return output;
     }
 
     const numberText = ctx.Number()?.text;
@@ -346,7 +350,7 @@ export class TemplateVisitor extends AbstractArmVisitor {
       const identifier = identifierCallCtx.Identifier();
 
       if (this.currentState.variables[identifier.text]) {
-        return this.currentState.variables[identifier.text](isTopLevel);
+        return this.currentState.variables[identifier.text](isTopLevel, isParam);
       }
 
       if (this.currentState.resources[identifier.text]) {
@@ -386,6 +390,15 @@ export class TemplateVisitor extends AbstractArmVisitor {
 
     const functionCallCtx = ctx.functionCall();
     if (functionCallCtx) {
+      let propertyTail = ctx.propertyTail();
+      const properties: string[] = [];
+      while (propertyTail?.propertyCall() !== undefined) {
+        const property = propertyTail?.propertyCall()?.text as string;
+
+        properties.push(property);
+        propertyTail = propertyTail.propertyTail();
+      }
+
       const functionName = functionCallCtx.Identifier().text;
       switch (functionName) {
         case 'resourceId':
@@ -401,9 +414,21 @@ export class TemplateVisitor extends AbstractArmVisitor {
           const resource = this.currentState.resources[identifier];
 
           // TODO improve this
+          if (properties.length > 0) {
+            const functionString = toResourceIdExpression(resource, false);
+            const output = `${functionString}.${properties.join('.')}`;
+            return isTopLevel ? `[${output}]` : output;
+          }
+
           return toResourceIdExpression(resource, isTopLevel);
         default:
           const params = functionCallCtx.property().map(p => this.visitFunctionParamProperty(p));
+
+          if (properties.length > 0) {
+            const functionString = formatFunction(functionName, params, false);
+            const output = `${functionString}.${properties.join('.')}`;
+            return isTopLevel ? `[${output}]` : output;
+          }
 
           return formatFunction(functionName, params, isTopLevel);
       }
