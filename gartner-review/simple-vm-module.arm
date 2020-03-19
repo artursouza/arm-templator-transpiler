@@ -5,6 +5,7 @@ input string adminPassword
 
 // input string vmCount // can I loop with a module?
 // input string operatingSystem - todo - incorporate this
+variable dnsPrefix uniqueString('test') 
 
 resource mod 'vmAndTheFixins' vm1 { // is it weird that the module name is a string?
   namePrefix: namePrefix // concat(namePrefix, '-pip1')

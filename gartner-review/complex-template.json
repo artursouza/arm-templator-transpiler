@@ -6,7 +6,7 @@
       "type": "string"
     },
     "adminPassword": {
-      "type": "string"
+      "type": "securestring"
     },
     "namePrefix": {
       "type": "string"
@@ -47,28 +47,7 @@
     },
     {
       "apiVersion": "2016-03-30",
-      "type": "Microsoft.Network/publicIpAddresses",
-      "name": "[concat(parameters('namePrefix'), '01', '-pip1')]",
-      "location": "eastus",
-      "properties": {
-        "publicIpAllocationMethod": "Dynamic",
-        "dnsSettings": {
-          "domainNameLabel": "[concat([uniqueString(resourceGroup())], '01')]"
-        }
-      }
-    },
-    {
-      "apiVersion": "2016-01-01",
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[uniqueString(resourceGroup())]",
-      "sku": {
-        "name": "Standard_LRS"
-      },
-      "kind": "Storage"
-    },
-    {
-      "apiVersion": "2016-03-30",
-      "type": "Microsoft.Network/virtualNetworks",
+      "type": "Microsoft.Network/virtualNetworks/subnets",
       "name": "[concat(parameters('namePrefix'), 'sub001')]",
       "properties": {
         "addressPrefix": "",
@@ -90,83 +69,6 @@
           "addressPrefix": "10.0.0.0/16"
         }
       }
-    },
-    {
-      "apiVersion": "2016-03-30",
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(parameters('namePrefix'), '01', '-nic1')]",
-      "location": "eastus",
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(parameters('namePrefix'), '01', '-pip1'))]"
-              },
-              "subnet": {
-                "id": "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), 'sub001'))]"
-              }
-            }
-          }
-        ],
-        "dnsSettings": {
-          "dnsServers": []
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIpAddresses', concat(parameters('namePrefix'), '01', '-pip1'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks', concat(parameters('namePrefix'), 'sub001'))]"
-      ]
-    },
-    {
-      "apiVersion": "2017-03-30",
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('namePrefix'), '01')]",
-      "location": "eastus",
-      "hardwareProfile": {
-        "vmSize": "Standard"
-      },
-      "storageProfile": {
-        "imageReference": {
-          "publisher": "MicrosoftWindowsServer",
-          "offer": "WindowsServer",
-          "sku": "2012-R2-Datacenter",
-          "version": "latest"
-        },
-        "osDisk": {
-          "name": "[concat(parameters('namePrefix'), '01')]",
-          "createOption": "FromImage",
-          "managedDisk": {
-            "storageAccountType": "Premium_LRS"
-          },
-          "caching": "ReadWrite"
-        }
-      },
-      "osProfile": {
-        "computerName": "[concat(parameters('namePrefix'), '01')]",
-        "adminUsername": "[parameters('adminUsername')]",
-        "windowsConfiguration": {},
-        "secrets": [],
-        "adminPassword": "[parameters('adminPassword')]"
-      },
-      "networkProfile": {
-        "networkInterfaces": [
-          {
-            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '01', '-nic1'))]"
-          }
-        ]
-      },
-      "diagnosticsProfile": {
-        "bootDiagnostics": {
-          "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', uniqueString(resourceGroup())), '2016-01-01')]"
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('namePrefix'), '01', '-nic1'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', uniqueString(resourceGroup()))]"
-      ]
     }
   ],
   "outputs": {}

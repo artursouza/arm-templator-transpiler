@@ -1,0 +1,38 @@
+module sqlServer {
+  input string namePrefix
+  input string location 
+}
+
+// one for prod, one for dev
+module sqlDb {
+  input string namePrefix
+  input string location
+}
+
+// Microsoft.Web/sites
+// /config, /deployments, /hostNameBindings * 4 
+module appService {
+  input string name
+  input string location
+  input string serverFarmId
+
+  resource azrm 'web/sites@2018-11-01' site {
+    name: name
+    location: location
+    kind: 'app'
+    properties: {
+      enabled: true
+      hostNameSslStates: []
+    },
+    serverFarmId: serverFarmId
+    // there are other props but would like to see if they are default
+  }
+
+  // web/serverFarms
+
+  // web/sites/config
+
+  // web/sites/deployments
+
+  // web/sites/hostNameBindings * 4
+}

@@ -1,0 +1,206 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "lawrencefarmsantiques",
+            "location": "East US",
+            "tags": {
+                "hidden-related:/subscriptions/d56e652e-758d-480a-8f0d-47f230264b4c/resourceGroups/Default-Web-EastUS/providers/Microsoft.Web/serverfarms/Default1": "Resource"
+            },
+            "kind": "app",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "*.lawrencefarmsantiques.com",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "lawrencefarmsantiques.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "lawrencefarmsantiques.com",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "www.lawrencefarmsantiques.com",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "lawrencefarmsantiques.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "/subscriptions/d56e652e-758d-480a-8f0d-47f230264b4c/resourceGroups/Default-Web-EastUS/providers/Microsoft.Web/serverfarms/Default1",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "lawrencefarmsantiques/web",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', 'lawrencefarmsantiques')]"
+            ],
+            "tags": {
+                "hidden-related:/subscriptions/d56e652e-758d-480a-8f0d-47f230264b4c/resourceGroups/Default-Web-EastUS/providers/Microsoft.Web/serverfarms/Default1": "Resource"
+            },
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "phpVersion": "5.6",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$lawrencefarmsantiques",
+                "scmType": "LocalGit",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.0",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "lawrencefarmsantiques/4a47969254c4101536242c20999714aa948b2f09",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', 'lawrencefarmsantiques')]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "alex.j.frankel@gmail.com",
+                "author": "ajf214",
+                "deployer": "GitHub",
+                "message": "Initial commit",
+                "start_time": "2018-03-22T13:54:35.6745491Z",
+                "end_time": "2018-03-22T13:54:38.1590189Z",
+                "active": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "lawrencefarmsantiques/*.lawrencefarmsantiques.com",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', 'lawrencefarmsantiques')]"
+            ],
+            "properties": {
+                "siteName": "lawrencefarmsantiques",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "lawrencefarmsantiques/lawrencefarmsantiques.azurewebsites.net",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', 'lawrencefarmsantiques')]"
+            ],
+            "properties": {
+                "siteName": "lawrencefarmsantiques",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "lawrencefarmsantiques/lawrencefarmsantiques.com",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', 'lawrencefarmsantiques')]"
+            ],
+            "properties": {
+                "siteName": "lawrencefarmsantiques",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "lawrencefarmsantiques/www.lawrencefarmsantiques.com",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', 'lawrencefarmsantiques')]"
+            ],
+            "properties": {
+                "siteName": "lawrencefarmsantiques",
+                "hostNameType": "Verified"
+            }
+        }
+    ]
+}

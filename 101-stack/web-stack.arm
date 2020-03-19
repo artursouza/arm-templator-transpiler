@@ -1,0 +1,19 @@
+input string namePrefix
+input string location
+input string size
+
+// includes web/serverFarms
+resource mod './modules@appService' appService {
+    name: 'lawrencefarmsantiques2'
+    location: location
+}
+
+resource mod './modules@sqlServer' sqlServer {
+    name: 'lfa2-db-server'
+    location: location
+}
+
+resource mod './modules@sqlDb' sqlDb {
+    name: 'lfa2-db'
+    location: location
+}

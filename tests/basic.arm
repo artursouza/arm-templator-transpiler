@@ -24,10 +24,6 @@ resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
 }
 
 // nicName, potentially, should not be available above this line
-<<<<<<< HEAD
-// input nicName string
-=======
->>>>>>> 61dc22e3472e9de41eb1266db04d7b5db83b917c
 input string nicName
 resource azrm 'network/networkInterfaces@2019-11-01' myNic {
   // should I be able to declare an input here?

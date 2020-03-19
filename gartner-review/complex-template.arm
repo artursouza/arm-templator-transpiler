@@ -1,12 +1,12 @@
 input string adminUsername
-input string adminPassword
+input securestring adminPassword
 input string namePrefix
 input string vmCount
-input string operatingSystem
+input string operatingSystem // todo - consume this
 input string availabilitySetName
 
 variable location 'eastus' // switching between vars and params is really easy
-variable vmSku 'Standard'
+variable vmSku 'Standard_DS1_v2'
 variable dnsPrefix uniqueString(resourceGroup().id) // this causes a bug because it inserts brackets incorrectly
 variable os {
     Publisher: 'MicrosoftWindowsServer'
@@ -135,7 +135,6 @@ for i in range(0, vmCount) {
                     }
                 }
             ]
-            dnsSettings: { dnsServers: [] } // do I need this?
             enableIpForwarding: false
         }
     }
@@ -143,7 +142,7 @@ for i in range(0, vmCount) {
 
 // storage for diagnostics
 resource azrm 'storage/storageAccounts@2016-01-01' storage {
-    name: uniqueString(resourceGroup().location)
+    name: uniqueString(resourceGroup().id) // todo - this doesn't work
     sku: { name: 'Standard_LRS' }
     kind: 'Storage'
 }

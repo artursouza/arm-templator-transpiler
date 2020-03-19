@@ -17,12 +17,17 @@ ArmVariable $subnetReferce = @{
     ID = resourceID mySubnet
 }
 
+# whatever here, not runtime-ey
+# can't write whatever code you want server-side
+
 ArmTemplate Basic {
     # [af] this line is a bit confusing to me
     $rgLocation = ArmParameter 'rgLocation'
     $namePrefix = ArmParameter 'namePrefix'
+    # todo - replace these with powershell params
 
     # "-Type", "-ApiVersion", and "-Name" can be optionally omitted here for brevity
+    # [af] how do I consume this module?
     ResourceModule -Type 'Network/publicIpAddresses' -ApiVersion '2019-11-01' -Name publicIP {
         param(
             [string]$Name,
@@ -38,7 +43,7 @@ ArmTemplate Basic {
     }
 
     Resource 'network/virtualNetworks/subnets' '2019-11-01' mySubnet {
-        Name = Concat $namePrefix '-subnet'
+        Name = "$namePrefix-subnet-${reference(publicIP)}" # Concat $namePrefix '-subnet' # why can't I use 'standard' powershell string concat?
         Location = $rgLocation
         Properties = @{
             AddressSpace = @{
@@ -63,8 +68,8 @@ ArmTemplate Basic {
         }
     }
 
-    for($i = 1; $i -le 2; i++) {
-        Resource -Module publicIP -Name "pip$i" -Values @{ 
+    for ($i = 1; $i -le 2; i++) { # [af] not in love with this syntax, pretty foreign compared to c-style langs
+        Resource -Module publicIP -Name "pip$i" -Values @{ # [af] would resources not get a reference here? 
             Name = Concat $namePrefix "-pip$i"
             Location = $rgLocation
         }
@@ -72,7 +77,7 @@ ArmTemplate Basic {
 }
 
 # generates the ARM template
-ArmTemplate -Name Foo -Location Bar
+ArmTemplate -Name Foo -Location Bar # [af] not clear to me what these parameters map to
 
 
 
@@ -85,7 +90,7 @@ ArmTemplate -Name Foo -Location Bar
 
 
 # Positional/simplified version
-ArmTemplate Basic ([string]$Name, [string]$Location) {
+ArmTemplate Basic ([string]$Name, [string]$Location) { # [af] can we go over this in more depth?
     Resource 'Network/publicIpAddresses' '2019-11-01' publicIP {
         Name = $Name
         Location = $Location
