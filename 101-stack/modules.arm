@@ -22,17 +22,93 @@ module appService {
     kind: 'app'
     properties: {
       enabled: true
-      hostNameSslStates: []
-    },
-    serverFarmId: serverFarmId
+      hostNameSslStates: sslStates
+    }
+    serverFarmId: resourceId(farm)
     // there are other props but would like to see if they are default
   }
 
   // web/serverFarms
+  resource azrm 'web/serverFarms@2018-02-01' farm {
+    name: name
+    location: location
+    sku: {
+      name: 'D1'
+      tier: 'Shared'
+      size: 'D1'
+      family: 'D'
+      capacity: 0
+    }
+    kind: 'app'
+    properties: {
+      perSiteScaling: false
+      maximumElasticWorkerCount: 0
+      targetWorkerCount: 0
+      targetWorkerSizeId: 0
+    }
+  }
 
   // web/sites/config
+  resource azrm 'web/sites/config@2018-11-01' config {
+    // how does it know to do dependsOn for child resources?
+    name: concat(name, 'web') // why is this called 'web'?
+    location: location
+    properties: {
+      numberOfWorkers: 1
+      defaultDocuments: [
+        'Default.htm'
+        'Default.html'
+        'Default.asp'
+        'index.htm'
+        'index.html'
+        'iisstart.htm'
+        'default.aspx'
+        'index.php'
+        'hostingstart.html'        
+      ]
+      netFrameworkVersion: 'v4.0'
+      phpVersion: '5.6'
+      publishingUsername: '$lawrencefarmsantiques'
+      scmType: 'LocalGit'
+      managedPipelineMode: 'Integrated'
+      virtualApplications: [
+        virtualPath: '/'
+        physicalPath: 'site\\wwwroot'
+        preloadEnabled: false
+      ]
+      loadBalancing: 'LeastRequests'
+      // many, many properties missing
+    }
+  }
 
   // web/sites/deployments
+  /*
+  resource azrm 'web/sites/deployments@2018-11-01' webDeployment {
+    name: concat(name, 'abc')
+  }
+  */
 
   // web/sites/hostNameBindings * 4
+
+
+  variable sslStates = [
+      {
+          name: '*.lawrencefarmsantiques.com'
+          sslState: 'Disabled'
+          hostType: 'Standard'
+      }
+      {
+          name: 'lawrencefarmsantiques.azurewebsites.net'
+          sslState: 'Disabled'
+          hostType: 'Standard'
+      }
+      {
+          name: 'lawrencefarmsantiques.com'
+          sslState: 'Disabled'
+          hostType: 'Standard'
+      }
+      // did not include all states, not sure what this does
+  ]
 }
+
+
