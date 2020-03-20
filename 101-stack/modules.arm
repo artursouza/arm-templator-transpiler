@@ -1,3 +1,4 @@
+/*
 module sqlServer {
   input string namePrefix
   input string location 
@@ -8,13 +9,13 @@ module sqlDb {
   input string namePrefix
   input string location
 }
+*/
 
 // Microsoft.Web/sites
 // /config, /deployments, /hostNameBindings * 4 
 module appService {
   input string name
   input string location
-  input string serverFarmId
 
   resource azrm 'web/sites@2018-11-01' site {
     name: name
@@ -37,24 +38,24 @@ module appService {
       tier: 'Shared'
       size: 'D1'
       family: 'D'
-      capacity: 0
+      // capacity: 0
     }
     kind: 'app'
     properties: {
-      perSiteScaling: false
-      maximumElasticWorkerCount: 0
-      targetWorkerCount: 0
-      targetWorkerSizeId: 0
+      // perSiteScaling: false
+      // maximumElasticWorkerCount: 0
+      // targetWorkerCount: 0
+      // targetWorkerSizeId: 0
     }
   }
 
   // web/sites/config
   resource azrm 'web/sites/config@2018-11-01' config {
     // how does it know to do dependsOn for child resources?
-    name: concat(name, 'web') // why is this called 'web'?
+    name: concat(name, '/', 'web') // why is this called 'web'?
     location: location
     properties: {
-      numberOfWorkers: 1
+      // numberOfWorkers: 1
       defaultDocuments: [
         'Default.htm'
         'Default.html'
@@ -71,11 +72,11 @@ module appService {
       publishingUsername: '$lawrencefarmsantiques'
       scmType: 'LocalGit'
       managedPipelineMode: 'Integrated'
-      virtualApplications: [
+      virtualApplications: {
         virtualPath: '/'
         physicalPath: 'site\\wwwroot'
-        preloadEnabled: false
-      ]
+        // preloadEnabled: false
+      }
       loadBalancing: 'LeastRequests'
       // many, many properties missing
     }
