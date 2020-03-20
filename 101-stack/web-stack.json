@@ -2,21 +2,15 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "namePrefix": {
-      "type": "string"
-    },
     "location": {
-      "type": "string"
-    },
-    "size": {
       "type": "string"
     }
   },
   "resources": [
     {
       "apiVersion": "2018-11-01",
-      "type": "web/sites/config",
-      "name": "[concat(lawrencefarmsantiques2, '/', 'web')]",
+      "type": "microsoft.web/sites/config",
+      "name": "[concat('lawrencefarmsantiques2', '/', 'web')]",
       "location": "[parameters('location')]",
       "properties": {
         "defaultDocuments": [
@@ -51,10 +45,15 @@
         "name": "D1",
         "tier": "Shared",
         "size": "D1",
-        "family": "D"
+        "family": "D",
+        "capacity": 0
       },
       "kind": "app",
-      "properties": {}
+      "properties": {
+        "maximumElasticWorkerCount": 0,
+        "targetWorkerCount": 0,
+        "targetWorkerSizeId": 0
+      }
     },
     {
       "apiVersion": "2018-11-01",
@@ -79,9 +78,9 @@
             "sslState": "Disabled",
             "hostType": "Standard"
           }
-        ]
+        ],
+        "serverFarmId": "[resourceId('web/serverFarms', 'lawrencefarmsantiques2')]"
       },
-      "serverFarmId": "[resourceId('web/serverFarms', 'lawrencefarmsantiques2')]",
       "dependsOn": [
         "[resourceId('web/serverFarms', 'lawrencefarmsantiques2')]"
       ]

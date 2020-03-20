@@ -24,8 +24,8 @@ module appService {
     properties: {
       enabled: true
       hostNameSslStates: sslStates
+      serverFarmId: resourceId(farm)
     }
-    serverFarmId: resourceId(farm)
     // there are other props but would like to see if they are default
   }
 
@@ -38,19 +38,19 @@ module appService {
       tier: 'Shared'
       size: 'D1'
       family: 'D'
-      // capacity: 0
+      capacity: 0
     }
     kind: 'app'
     properties: {
-      // perSiteScaling: false
-      // maximumElasticWorkerCount: 0
-      // targetWorkerCount: 0
-      // targetWorkerSizeId: 0
+      perSiteScaling: false
+      maximumElasticWorkerCount: 0
+      targetWorkerCount: 0
+      targetWorkerSizeId: 0
     }
   }
 
   // web/sites/config
-  resource azrm 'web/sites/config@2018-11-01' config {
+  resource azrm 'microsoft.web/sites/config@2018-11-01' config { // need 'microsoft.' for child resources
     // how does it know to do dependsOn for child resources?
     name: concat(name, '/', 'web') // why is this called 'web'?
     location: location

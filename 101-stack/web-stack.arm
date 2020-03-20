@@ -1,6 +1,6 @@
-input string namePrefix
+// input string namePrefix
 input string location
-input string size
+// input string size
 
 // includes web/serverFarms
 resource mod './modules.arm@appService' appService { // need .arm in the file
