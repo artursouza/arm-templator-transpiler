@@ -64,7 +64,7 @@ Identifier
     ;
 
 Number
-    : NonzeroDigit Digit*
+    : Digit+
     ;
 
 String
@@ -102,10 +102,6 @@ fragment NonDigit
 
 fragment Digit
     : [0-9]
-    ;
-
-fragment NonzeroDigit
-    : [1-9]
     ;
 
 fragment StringEscapeSequence
