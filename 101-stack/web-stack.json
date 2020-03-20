@@ -1,0 +1,91 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "namePrefix": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "size": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-11-01",
+      "type": "web/sites/config",
+      "name": "[concat(lawrencefarmsantiques2, '/', 'web')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "defaultDocuments": [
+          "Default.htm",
+          "Default.html",
+          "Default.asp",
+          "index.htm",
+          "index.html",
+          "iisstart.htm",
+          "default.aspx",
+          "index.php",
+          "hostingstart.html"
+        ],
+        "netFrameworkVersion": "v4.0",
+        "phpVersion": "5.6",
+        "publishingUsername": "$lawrencefarmsantiques",
+        "scmType": "LocalGit",
+        "managedPipelineMode": "Integrated",
+        "virtualApplications": {
+          "virtualPath": "/",
+          "physicalPath": "site\\wwwroot"
+        },
+        "loadBalancing": "LeastRequests"
+      }
+    },
+    {
+      "apiVersion": "2018-02-01",
+      "type": "web/serverFarms",
+      "name": "lawrencefarmsantiques2",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "D1",
+        "tier": "Shared",
+        "size": "D1",
+        "family": "D"
+      },
+      "kind": "app",
+      "properties": {}
+    },
+    {
+      "apiVersion": "2018-11-01",
+      "type": "web/sites",
+      "name": "lawrencefarmsantiques2",
+      "location": "[parameters('location')]",
+      "kind": "app",
+      "properties": {
+        "hostNameSslStates": [
+          {
+            "name": "*.lawrencefarmsantiques.com",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "lawrencefarmsantiques.azurewebsites.net",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "lawrencefarmsantiques.com",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          }
+        ]
+      },
+      "serverFarmId": "[resourceId('web/serverFarms', 'lawrencefarmsantiques2')]",
+      "dependsOn": [
+        "[resourceId('web/serverFarms', 'lawrencefarmsantiques2')]"
+      ]
+    }
+  ],
+  "outputs": {}
+}
