@@ -16,6 +16,7 @@ export class ArmLangCompiler {
   private programCache: Dictionary<ProgramContext> = {};
 
   transpile(filePath: string, writer: TemplateWriter) {
+    this.programCache = {};
     filePath = path.resolve(filePath);
 
     const modules = this.buildModuleDependencyGraph(filePath);
@@ -37,6 +38,19 @@ export class ArmLangCompiler {
       visitWithErrorHandling(scope, this.programCache[modulePath], templateVisitor);
 
       externalVisitors[modulePath] = templateVisitor;
+    }
+  }
+
+  watch(filePath: string, onChanged: () => void) {
+    try {
+      const moduleGraph = this.buildModuleDependencyGraph(filePath);
+      const modules = getDependencyOrder(moduleGraph);
+      for (const modulePath of modules) {
+        fs.watch(modulePath, null , (e, file) => onChanged());
+      }
+    } catch (e) {
+      console.error(`Caught error running watch command: ${e}`);
+      fs.watch(filePath, null , (e, file) => onChanged());
     }
   }
 

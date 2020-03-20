@@ -18,18 +18,18 @@ const stat = fs.statSync(filePath);
 if (!stat.isFile()) {
   throw new Error(`Unable to watch file ${filePath}.`);
 }
-recompile(filePath);
-fs.watchFile(filePath, (cur, prev) => {
-  recompile(filePath);
-});
 
-function recompile(inputFile: string) {
+const compiler = new ArmLangCompiler();
+
+compile(filePath);
+compiler.watch(filePath, () => compile(filePath));
+
+function compile(inputFile: string) {
   try {
     console.clear();
     console.log('Compiling...');
 
     const writer = new TemplateStringWriter();
-    const compiler = new ArmLangCompiler();
     compiler.transpile(inputFile, writer);
 
     const output = writer.read();
