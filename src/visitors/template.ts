@@ -7,18 +7,13 @@ import { Token } from 'antlr4ts';
 
 type InputCallFunction = (isTopLevel: boolean, isParam: boolean) => any;
 
-const providerLookup: Dictionary<string> = {
-  network: 'Microsoft.Network',
-  compute: 'Microsoft.Compute',
-  storage: 'Microsoft.Storage',
-}
-
 function parseAzrmTypeString(type: string) {
   const [typeString, apiVersion] = type.split('@');
   let [provider, ...typeArray] = typeString.split('/');
 
-  if (providerLookup[provider]) {
-    provider = providerLookup[provider];
+  if (provider.indexOf('.') === -1) {
+    // assume Microsoft unless the namespace contains a '.'
+    provider = `Microsoft.${provider}`;
   }
 
   let fullType = `${provider}/${typeArray.join('/')}`
