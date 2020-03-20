@@ -13,7 +13,9 @@ resource mod './modules@sqlServer' sqlServer {
     name: 'lfa2-db-server'
     location: location
 }
+*/
 
+/*
 resource mod './modules@sqlDb' sqlDb {
     name: 'lfa2-db'
     location: location

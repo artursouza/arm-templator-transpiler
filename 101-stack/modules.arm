@@ -50,10 +50,11 @@ module appService {
   }
 
   // web/sites/config
-  resource azrm 'microsoft.web/sites/config@2018-11-01' config { // need 'microsoft.' for child resources
+  resource azrm 'web/sites/config@2018-11-01' config { // need 'microsoft.' for child resources
     // how does it know to do dependsOn for child resources?
     name: concat(name, '/', 'web') // why is this called 'web'?
     location: location
+    dependsOn: resourceId(site) // need dependsOn for child resources
     properties: {
       // numberOfWorkers: 1
       defaultDocuments: [
@@ -75,7 +76,7 @@ module appService {
       virtualApplications: {
         virtualPath: '/'
         physicalPath: 'site\\wwwroot'
-        // preloadEnabled: false
+        preloadEnabled: false
       }
       loadBalancing: 'LeastRequests'
       // many, many properties missing

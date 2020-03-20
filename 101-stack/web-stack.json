@@ -8,10 +8,62 @@
   },
   "resources": [
     {
+      "apiVersion": "2018-02-01",
+      "type": "Microsoft.web/serverFarms",
+      "name": "lawrencefarmsantiques2",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "D1",
+        "tier": "Shared",
+        "size": "D1",
+        "family": "D",
+        "capacity": 0
+      },
+      "kind": "app",
+      "properties": {
+        "maximumElasticWorkerCount": 0,
+        "targetWorkerCount": 0,
+        "targetWorkerSizeId": 0
+      }
+    },
+    {
       "apiVersion": "2018-11-01",
-      "type": "microsoft.web/sites/config",
+      "type": "Microsoft.web/sites",
+      "name": "lawrencefarmsantiques2",
+      "location": "[parameters('location')]",
+      "kind": "app",
+      "properties": {
+        "hostNameSslStates": [
+          {
+            "name": "*.lawrencefarmsantiques.com",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "lawrencefarmsantiques.azurewebsites.net",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "lawrencefarmsantiques.com",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.web/serverFarms', 'lawrencefarmsantiques2')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.web/serverFarms', 'lawrencefarmsantiques2')]"
+      ]
+    },
+    {
+      "apiVersion": "2018-11-01",
+      "type": "Microsoft.web/sites/config",
       "name": "[concat('lawrencefarmsantiques2', '/', 'web')]",
       "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.web/sites', 'lawrencefarmsantiques2')]"
+      ],
       "properties": {
         "defaultDocuments": [
           "Default.htm",
@@ -35,55 +87,6 @@
         },
         "loadBalancing": "LeastRequests"
       }
-    },
-    {
-      "apiVersion": "2018-02-01",
-      "type": "web/serverFarms",
-      "name": "lawrencefarmsantiques2",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "D1",
-        "tier": "Shared",
-        "size": "D1",
-        "family": "D",
-        "capacity": 0
-      },
-      "kind": "app",
-      "properties": {
-        "maximumElasticWorkerCount": 0,
-        "targetWorkerCount": 0,
-        "targetWorkerSizeId": 0
-      }
-    },
-    {
-      "apiVersion": "2018-11-01",
-      "type": "web/sites",
-      "name": "lawrencefarmsantiques2",
-      "location": "[parameters('location')]",
-      "kind": "app",
-      "properties": {
-        "hostNameSslStates": [
-          {
-            "name": "*.lawrencefarmsantiques.com",
-            "sslState": "Disabled",
-            "hostType": "Standard"
-          },
-          {
-            "name": "lawrencefarmsantiques.azurewebsites.net",
-            "sslState": "Disabled",
-            "hostType": "Standard"
-          },
-          {
-            "name": "lawrencefarmsantiques.com",
-            "sslState": "Disabled",
-            "hostType": "Standard"
-          }
-        ],
-        "serverFarmId": "[resourceId('web/serverFarms', 'lawrencefarmsantiques2')]"
-      },
-      "dependsOn": [
-        "[resourceId('web/serverFarms', 'lawrencefarmsantiques2')]"
-      ]
     }
   ],
   "outputs": {}

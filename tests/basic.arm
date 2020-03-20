@@ -6,7 +6,7 @@ module publicIpAddress {
   input string name
   input string location
 
-  resource azrm 'network/publicIpAddresses@2019-11-01' publicIp {
+  resource azrm 'Network/publicIpAddresses@2019-11-01' publicIp {
     name: name
     location: location
     properties: {
@@ -15,7 +15,7 @@ module publicIpAddress {
   }
 }
 
-resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
+resource azrm 'Network/virtualNetworks/subnets@2019-11-01' mySubnet {
   name: concat('myVnet/', namePrefix, '-subnet')
   location: rgLocation
   properties: {
@@ -23,12 +23,7 @@ resource azrm 'network/virtualNetworks/subnets@2019-11-01' mySubnet {
   }
 }
 
-// nicName, potentially, should not be available above this line
-input string nicName
-resource azrm 'network/networkInterfaces@2019-11-01' myNic {
-  // should I be able to declare an input here?
-
-  // if we are going to do whitespace delimiter, make sure multi-line work
+resource azrm 'Network/networkInterfaces@2019-11-01' myNic {
   name: concat(namePrefix, '-nic')
   location: rgLocation
   properties: {
@@ -52,7 +47,7 @@ variable subnetReference {
 // this comment should be ignored
 
 /* this block comment should be ignored
-resource azrm 'network/publicIpAddresses@2019-11-01' myPip {
+resource azrm 'Network/publicIpAddresses@2019-11-01' myPip {
   name: concat(namePrefix, '-pip')
   properties: {
   }
