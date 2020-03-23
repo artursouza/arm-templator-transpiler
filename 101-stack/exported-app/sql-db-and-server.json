@@ -1,0 +1,982 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2019-06-01-preview",
+            "name": "cdc0uyw7bh",
+            "location": "eastus2",
+            "kind": "v12.0",
+            "properties": {
+                "administratorLogin": "sonofdiesel",
+                "version": "12.0"
+            }
+        },
+                {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2019-06-01-preview",
+            "name": "cdc0uyw7bh/LFA",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "sku": {
+                "name": "Basic",
+                "tier": "Basic",
+                "capacity": 5
+            },
+            "kind": "v12.0,user",
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "maxSizeBytes": 2147483648,
+                "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+                "zoneRedundant": false,
+                "readScale": "Disabled",
+                "readReplicaCount": 0,
+                "storageAccountType": "GRS"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/611",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "73.53.47.163",
+                "endIpAddress": "73.53.47.163"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/keys",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ServiceManaged",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "kind": "servicemanaged",
+            "properties": {
+                "serverKeyType": "ServiceManaged"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/CreateIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/DbParameterization",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/DefragmentIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/DropIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/ForceLastGoodPlan",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/Default",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/auditingSettings",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000",
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2019-06-01-preview",
+            "name": "cdc0uyw7bh/LFA-DEV",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "sku": {
+                "name": "Basic",
+                "tier": "Basic",
+                "capacity": 5
+            },
+            "kind": "v12.0,user",
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "maxSizeBytes": 2147483648,
+                "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+                "zoneRedundant": false,
+                "readScale": "Disabled",
+                "readReplicaCount": 0,
+                "storageAccountType": "GRS"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/master/Default",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingSettings",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/master/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "retentionDays": 0,
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000",
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/extendedAuditingSettings",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/master/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "retentionDays": 0,
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000",
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/master/Default",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+            "apiVersion": "2018-06-01-preview",
+            "name": "cdc0uyw7bh/master/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/master/current",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "status": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/master/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/encryptionProtector",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/current",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "kind": "servicemanaged",
+            "properties": {
+                "serverKeyName": "ServiceManaged",
+                "serverKeyType": "ServiceManaged"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/extendedAuditingSettings",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000",
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/Alex's Home PC",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "64.187.174.143",
+                "endIpAddress": "64.187.174.143"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/AllowAllWindowsAzureIps",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "0.0.0.0"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/Chappaqua Basement Ethernet",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "108.6.19.191",
+                "endIpAddress": "108.6.19.191"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2017-05-27_07:19:52",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "108.6.182.120",
+                "endIpAddress": "108.6.182.120"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2017-05-31_12:38:20",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "65.78.10.222",
+                "endIpAddress": "65.78.10.222"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2017-08-09_06:04:09",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "167.220.24.169",
+                "endIpAddress": "167.220.24.169"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2018-01-02_10:15:40",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "167.220.148.36",
+                "endIpAddress": "167.220.148.36"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2018-02-03_06:50:10",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "24.193.31.239",
+                "endIpAddress": "24.193.31.239"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2019-01-15_02:57:01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "131.107.159.194",
+                "endIpAddress": "131.107.159.194"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2019-01-15_08:43:03",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "167.220.2.100",
+                "endIpAddress": "167.220.2.100"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2019-03-16_08:36:40",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "131.107.174.96",
+                "endIpAddress": "131.107.174.96"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2019-03-18_03:34:50",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "167.220.2.31",
+                "endIpAddress": "167.220.2.31"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2019-06-10_12:07:10",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "131.107.147.196",
+                "endIpAddress": "131.107.147.196"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2019-09-29_09:21:48",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "131.107.147.70",
+                "endIpAddress": "131.107.147.70"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2019-11-25_02:09:32",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "167.220.148.232",
+                "endIpAddress": "167.220.148.232"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2019-12-31_06:06:37",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "131.107.159.104",
+                "endIpAddress": "131.107.159.104"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2020-02-10_07:29:40",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "131.107.174.78",
+                "endIpAddress": "131.107.174.78"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2020-02-11_04:38:08",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "131.107.174.65",
+                "endIpAddress": "131.107.174.65"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/ClientIPAddress_2020-03-15_06:40:43",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "131.107.174.218",
+                "endIpAddress": "131.107.174.218"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/Cotton's Spot",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "24.56.230.182",
+                "endIpAddress": "24.56.230.182"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/express-local",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "167.220.26.52",
+                "endIpAddress": "167.220.26.52"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/MEAT KING 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "71.37.39.157",
+                "endIpAddress": "71.37.39.157"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/MEAT KING!!",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "174.24.156.95",
+                "endIpAddress": "174.24.156.95"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2015-05-01-preview",
+            "name": "cdc0uyw7bh/NYC",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "startIpAddress": "65.78.5.70",
+                "endIpAddress": "65.78.5.70"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/securityAlertPolicies",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/vulnerabilityAssessments",
+            "apiVersion": "2018-06-01-preview",
+            "name": "cdc0uyw7bh/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                },
+                "storageContainerPath": null
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA/CreateIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA/DbParameterization",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA/DefragmentIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA/DropIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA/ForceLastGoodPlan",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA-DEV/CreateIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA-DEV/DbParameterization",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA-DEV/DefragmentIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA-DEV/DropIndex",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA-DEV/ForceLastGoodPlan",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA/Default",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA-DEV/Default",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingSettings",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/LFA/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "retentionDays": 0,
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000",
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingSettings",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/LFA-DEV/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000",
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/backupShortTermRetentionPolicies",
+            "apiVersion": "2017-10-01-preview",
+            "name": "cdc0uyw7bh/LFA/default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "retentionDays": 7
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/backupShortTermRetentionPolicies",
+            "apiVersion": "2017-10-01-preview",
+            "name": "cdc0uyw7bh/LFA-DEV/default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "retentionDays": 7
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/extendedAuditingSettings",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/LFA/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "retentionDays": 0,
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000",
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/extendedAuditingSettings",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/LFA-DEV/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000",
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA/Default",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA-DEV/Default",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+            "apiVersion": "2018-06-01-preview",
+            "name": "cdc0uyw7bh/LFA/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+            "apiVersion": "2018-06-01-preview",
+            "name": "cdc0uyw7bh/LFA-DEV/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA/current",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "status": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+            "apiVersion": "2014-04-01",
+            "name": "cdc0uyw7bh/LFA-DEV/current",
+            "location": "East US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "status": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/LFA/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+            "apiVersion": "2017-03-01-preview",
+            "name": "cdc0uyw7bh/LFA-DEV/Default",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', 'cdc0uyw7bh', 'LFA-DEV')]",
+                "[resourceId('Microsoft.Sql/servers', 'cdc0uyw7bh')]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                }
+            }
+        }
+    ]
+}

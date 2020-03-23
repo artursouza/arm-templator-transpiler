@@ -1,17 +1,25 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {
-    "location": {
-      "type": "string"
-    }
-  },
+  "parameters": {},
   "resources": [
+    {
+      "apiVersion": "2019-06-01-preview",
+      "type": "Microsoft.sql/servers",
+      "name": "lfa2-db-server",
+      "location": "eastus2",
+      "kind": "v12.0",
+      "properties": {
+        "administratorLogin": "sonofdiesel",
+        "administratorLoginPassword": "P@ssw0rd12345",
+        "version": "12.0"
+      }
+    },
     {
       "apiVersion": "2018-02-01",
       "type": "Microsoft.web/serverFarms",
-      "name": "lawrencefarmsantiques2",
-      "location": "[parameters('location')]",
+      "name": "lawrencefarmsantiques3",
+      "location": "eastus2",
       "sku": {
         "name": "D1",
         "tier": "Shared",
@@ -20,17 +28,13 @@
         "capacity": 0
       },
       "kind": "app",
-      "properties": {
-        "maximumElasticWorkerCount": 0,
-        "targetWorkerCount": 0,
-        "targetWorkerSizeId": 0
-      }
+      "properties": {}
     },
     {
       "apiVersion": "2018-11-01",
       "type": "Microsoft.web/sites",
-      "name": "lawrencefarmsantiques2",
-      "location": "[parameters('location')]",
+      "name": "lawrencefarmsantiques3",
+      "location": "eastus2",
       "kind": "app",
       "properties": {
         "hostNameSslStates": [
@@ -50,19 +54,19 @@
             "hostType": "Standard"
           }
         ],
-        "serverFarmId": "[resourceId('Microsoft.web/serverFarms', 'lawrencefarmsantiques2')]"
+        "serverFarmId": "[resourceId('Microsoft.web/serverFarms', 'lawrencefarmsantiques3')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.web/serverFarms', 'lawrencefarmsantiques2')]"
+        "[resourceId('Microsoft.web/serverFarms', 'lawrencefarmsantiques3')]"
       ]
     },
     {
       "apiVersion": "2018-11-01",
       "type": "Microsoft.web/sites/config",
-      "name": "[concat('lawrencefarmsantiques2', '/', 'web')]",
-      "location": "[parameters('location')]",
+      "name": "[concat('lawrencefarmsantiques3', '/', 'web')]",
+      "location": "eastus2",
       "dependsOn": [
-        "[resourceId('Microsoft.web/sites', 'lawrencefarmsantiques2')]"
+        "[resourceId('Microsoft.web/sites', 'lawrencefarmsantiques3')]"
       ],
       "properties": {
         "defaultDocuments": [

@@ -1,8 +1,30 @@
-/*
 module sqlServer {
-  input string namePrefix
-  input string location 
+  input string name
+  input string location
+  input string password
+
+  resource azrm 'sql/servers@2019-06-01-preview' sqlServer {
+    name: name
+    location: location
+    kind: 'v12.0'
+    properties: {
+      administratorLogin: 'sonofdiesel'
+      administratorLoginPassword: password
+      version: '12.0'
+    }
+  } 
 }
+
+module sqlDb {
+  input string name
+  input string location
+}
+
+module firewallRule {
+
+}
+
+/*
 
 // one for prod, one for dev
 module sqlDb {
@@ -43,9 +65,6 @@ module appService {
     kind: 'app'
     properties: {
       perSiteScaling: false
-      maximumElasticWorkerCount: 0
-      targetWorkerCount: 0
-      targetWorkerSizeId: 0
     }
   }
 
@@ -111,6 +130,68 @@ module appService {
       }
       // did not include all states, not sure what this does
   ]
+}
+
+module appServiceContainer {
+  input string name
+  input string location
+  input string serverFarmId
+
+  input string dockerUrl
+  input string dockerUsername
+  input string dockerPassword
+
+  resource azrm 'web/sites@2018-11-01' site {
+    name: name
+    location: location
+    kind: 'app,linux,container'
+    properties: {
+      // enabled: true
+      // hostNameSslStates: sslStates
+      // alwaysOn: true
+      siteConfig: {
+        appSettings: [
+          {
+            name: 'DOCKER_REGISTRY_SERVER_URL'
+            value: dockerUrl
+          }
+          {
+            name: 'DOCKER_REGISTRY_SERVER_USERNAME'
+            value: dockerUsername
+          }
+          {
+            name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
+            value: dockerPassword
+          }
+        ]
+      }
+      serverFarmId: resourceId(serverFarmId)
+    }
+    // there are other props but would like to see if they are default
+  }
+
+
+}
+
+module serverFarm {
+  input string name
+  input string location
+
+  resource azrm 'web/serverFarms@2018-02-01' farm {
+    name: name
+    location: location
+    sku: {
+      name: 'D1'
+      tier: 'Shared'
+      size: 'D1'
+      family: 'D'
+      capacity: 0
+    }
+    kind: 'app'
+    properties: {
+      perSiteScaling: false
+    }
+  }
 }
 
 
