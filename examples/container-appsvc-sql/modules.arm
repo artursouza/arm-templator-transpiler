@@ -39,40 +39,9 @@ module sqlServerAndDb {
   } 
 }
 
-/*
-module sqlDb {
-  resource azrm 'sql/servers/databases@2019-06-01-preview' sqlDb {
-    name: concat(sqlServerName, '/', name)
-    location: location
-    sku: {
-      name: 'Basic'
-      tier: 'Basic'
-      capacity: 5
-    }
-    kind: 'v12.0,user'
-    properties: {
-      collation: 'SQL_Latin1_General_CP1_CI_AS'
-      maxSizeBytes: 2147483648
-      catalogCollation: 'SQL_Latin1_General_CP1_CI_AS'
-      zoneRedundant: false
-      readScale: 'Disabled'
-      readReplicaCount: 0
-      storageAccountType: 'GRS'
-    }
-    // need to set manual dependsOn since there is no explicit reference
-  }
-}
-*/
-
-/*
-module firewallRule {
-
-}
-*/
-
 // Microsoft.Web/sites
 // /config, /deployments, /hostNameBindings * 4\
-// 3/24 - did config as a chile resource 
+// 3/24 - did config as a child resource 
 module appService {
   input string name
   input string location
