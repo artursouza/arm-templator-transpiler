@@ -20,16 +20,9 @@ module sqlDb {
   input string location
 }
 
+/*
 module firewallRule {
 
-}
-
-/*
-
-// one for prod, one for dev
-module sqlDb {
-  input string namePrefix
-  input string location
 }
 */
 
@@ -132,28 +125,30 @@ module appService {
   ]
 }
 
+// need to create site and farm together because no other way to get resId
 module appServiceContainer {
   input string name
   input string location
-  input string serverFarmId
 
-  input string dockerUrl
+  input string acrName
   input string dockerUsername
   input string dockerPassword
+  input string dockerImageAndTag
 
   resource azrm 'web/sites@2018-11-01' site {
     name: name
     location: location
-    kind: 'app,linux,container'
+    // kind: 'app,linux,container'
     properties: {
       // enabled: true
       // hostNameSslStates: sslStates
       // alwaysOn: true
+      name: name
       siteConfig: {
         appSettings: [
           {
             name: 'DOCKER_REGISTRY_SERVER_URL'
-            value: dockerUrl
+            value: 'https://almancontainerregistry.azurecr.io' 
           }
           {
             name: 'DOCKER_REGISTRY_SERVER_USERNAME'
@@ -163,33 +158,37 @@ module appServiceContainer {
             name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
             value: dockerPassword
           }
+          {
+            name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+            value: 'false'
+          }
         ]
+        linuxFxVersion: 'DOCKER|almancontainerregistry.azurecr.io/lfa:latest' // concat('DOCKER|', acrName, '.azurecr.io/', dockerImageAndTag)
+        appCommandLine: ''
+        alwaysOn: false
       }
-      serverFarmId: resourceId(serverFarmId)
+      serverFarmId: resourceId(farm)
+      hostingEnvironment: ''
+      clientAffinitiyEnabled: false
     }
     // there are other props but would like to see if they are default
   }
-
-
-}
-
-module serverFarm {
-  input string name
-  input string location
 
   resource azrm 'web/serverFarms@2018-02-01' farm {
     name: name
     location: location
     sku: {
-      name: 'D1'
-      tier: 'Shared'
-      size: 'D1'
-      family: 'D'
-      capacity: 0
+      name: 'B1'
+      tier: 'Basic'
     }
-    kind: 'app'
+    kind: 'linux' // if kind=app -> windows
     properties: {
-      perSiteScaling: false
+      name: name
+      workerSize: '0'
+      workerSizeId: '0'
+      numberOfWorkers: '1'
+      reserved: true
+      hostingEnvironment: ''
     }
   }
 }

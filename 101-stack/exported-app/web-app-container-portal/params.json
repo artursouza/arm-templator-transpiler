@@ -1,0 +1,57 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "subscriptionId": {
+            "value": "d56e652e-758d-480a-8f0d-47f230264b4c"
+        },
+        "name": {
+            "value": "lfa3"
+        },
+        "location": {
+            "value": "East US"
+        },
+        "hostingEnvironment": {
+            "value": ""
+        },
+        "hostingPlanName": {
+            "value": "ASP-dotarmtesting-bf9b"
+        },
+        "serverFarmResourceGroup": {
+            "value": "dotarm-testing"
+        },
+        "alwaysOn": {
+            "value": false
+        },
+        "sku": {
+            "value": "Basic"
+        },
+        "skuCode": {
+            "value": "B1"
+        },
+        "workerSize": {
+            "value": "0"
+        },
+        "workerSizeId": {
+            "value": "0"
+        },
+        "numberOfWorkers": {
+            "value": "1"
+        },
+        "linuxFxVersion": {
+            "value": "DOCKER|almancontainerregistry.azurecr.io/lfa:latest"
+        },
+        "dockerRegistryUrl": {
+            "value": "https://almancontainerregistry.azurecr.io"
+        },
+        "dockerRegistryUsername": {
+            "value": "almanContainerRegistry"
+        },
+        "dockerRegistryPassword": {
+            "value": null
+        },
+        "dockerRegistryStartupCommand": {
+            "value": ""
+        }
+    }
+}
