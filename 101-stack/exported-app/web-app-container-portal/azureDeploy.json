@@ -1,135 +1,66 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {
-        "subscriptionId": {
-            "type": "string",
-            "defaultValue": "d56e652e-758d-480a-8f0d-47f230264b4c"
-        },
-        "name": {
-            "type": "string",
-            "defaultValue": "lfa3"
-        },
-        "location": {
-            "type": "string",
-            "defaultValue": "East US"
-        },
-        "hostingEnvironment": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "hostingPlanName": {
-            "type": "string",
-            "defaultValue": "ASP-dotarmtesting-bf9b"
-        },
-        "serverFarmResourceGroup": {
-            "type": "string",
-            "defaultValue": "dotarm-testing"
-        },
-        "alwaysOn": {
-            "type": "bool",
-            "defaultValue": false
-        },
-        "sku": {
-            "type": "string",
-            "defaultValue": "Basic"
-        },
-        "skuCode": {
-            "type": "string",
-            "defaultValue": "B1"
-        },
-        "workerSize": {
-            "type": "string",
-            "defaultValue": "0"
-        },
-        "workerSizeId": {
-            "type": "string",
-            "defaultValue": "0"
-        },
-        "numberOfWorkers": {
-            "type": "string",
-            "defaultValue": "1"
-        },
-        "linuxFxVersion": {
-            "type": "string",
-            "defaultValue": "DOCKER|almancontainerregistry.azurecr.io/lfa:latest"
-        },
-        "dockerRegistryUrl": {
-            "type": "string",
-            "defaultValue": "https://almancontainerregistry.azurecr.io"
-        },
-        "dockerRegistryUsername": {
-            "type": "string",
-            "defaultValue": "almanContainerRegistry"
-        },
-        "dockerRegistryPassword": {
-            "type": "string",
-            "defaultValue": "JU+Z30g2SaIgokzlGAWVcFPyUQiGQV41"
-        },
-        "dockerRegistryStartupCommand": {
-            "type": "string",
-            "defaultValue": ""
-        }
-    },
+    "parameters": {},
     "resources": [
         {
             "apiVersion": "2018-11-01",
-            "name": "[parameters('name')]",
-            "type": "Microsoft.Web/sites",
-            "location": "[parameters('location')]",
+            "name": "lawrencefarmsantiques3",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "East US 2",
+            "kind": "linux",
             "tags": null,
             "dependsOn": [
-                "[concat('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
             ],
             "properties": {
-                "name": "[parameters('name')]",
+                "name": "lawrencefarmsantiques3",
+                "workerSize": "0",
+                "workerSizeId": "0",
+                "numberOfWorkers": "1",
+                "reserved": true,
+                "hostingEnvironment": ""
+            },
+            "sku": {
+                "Tier": "Basic",
+                "Name": "B1"
+            }
+        },
+        {
+            "apiVersion": "2018-11-01",
+            "name": "lawrencefarmsantiques3",
+            "type": "Microsoft.Web/sites",
+            "location": "East US 2",
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', 'lawrencefarmsantiques3')]"
+            ],
+            "properties": {
+                "name": "lfa3",
                 "siteConfig": {
                     "appSettings": [
                         {
                             "name": "DOCKER_REGISTRY_SERVER_URL",
-                            "value": "[parameters('dockerRegistryUrl')]"
+                            "value": "https://almancontainerregistry.azurecr.io"
                         },
                         {
                             "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-                            "value": "[parameters('dockerRegistryUsername')]"
+                            "value": "almanContainerRegistry"
                         },
                         {
                             "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-                            "value": "[parameters('dockerRegistryPassword')]"
+                            "value": "JU+Z30g2SaIgokzlGAWVcFPyUQiGQV41"
                         },
                         {
                             "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
                             "value": "false"
                         }
                     ],
-                    "linuxFxVersion": "[parameters('linuxFxVersion')]",
-                    "appCommandLine": "[parameters('dockerRegistryStartupCommand')]",
-                    "alwaysOn": "[parameters('alwaysOn')]"
+                    "linuxFxVersion": "DOCKER|almancontainerregistry.azurecr.io/lfa:latest",
+                    "appCommandLine": "",
+                    "alwaysOn": false
                 },
-                "serverFarmId": "[concat('/subscriptions/', parameters('subscriptionId'),'/resourcegroups/', parameters('serverFarmResourceGroup'), '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]",
-                "hostingEnvironment": "[parameters('hostingEnvironment')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'lawrencefarmsantiques3')]",
+                "hostingEnvironment": "",
                 "clientAffinityEnabled": false
-            }
-        },
-        {
-            "apiVersion": "2018-11-01",
-            "name": "[parameters('hostingPlanName')]",
-            "type": "Microsoft.Web/serverfarms",
-            "location": "[parameters('location')]",
-            "kind": "linux",
-            "tags": null,
-            "dependsOn": [],
-            "properties": {
-                "name": "[parameters('hostingPlanName')]",
-                "workerSize": "[parameters('workerSize')]",
-                "workerSizeId": "[parameters('workerSizeId')]",
-                "numberOfWorkers": "[parameters('numberOfWorkers')]",
-                "reserved": true,
-                "hostingEnvironment": "[parameters('hostingEnvironment')]"
-            },
-            "sku": {
-                "Tier": "[parameters('sku')]",
-                "Name": "[parameters('skuCode')]"
             }
         }
     ]

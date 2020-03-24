@@ -6,11 +6,13 @@ variable location 'eastus2'
 resource mod './modules.arm@appServiceContainer' appService { // need .arm in the file
     name: 'lawrencefarmsantiques3'
     location: location
-    // serverFarmId: resourceId('Microsoft.Sql/Server', 'lfa2-db-server')
+    // serverFarmId: resourceId('Microsoft.Sql/Server', 'lfa2-db-server') --> would like to do something like this to separate farm from site
     acrName: 'almanContainerRegistry'
     dockerUsername: 'almanContainerRegistry'
     dockerPassword: 'JU+Z30g2SaIgokzlGAWVcFPyUQiGQV41'
     dockerImageAndTag: 'lfa:latest'
+
+    // should sku be here? how do I adjust sku and then also adjust skucode!?
 }
 
 /*

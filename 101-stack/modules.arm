@@ -138,17 +138,13 @@ module appServiceContainer {
   resource azrm 'web/sites@2018-11-01' site {
     name: name
     location: location
-    // kind: 'app,linux,container'
     properties: {
-      // enabled: true
-      // hostNameSslStates: sslStates
-      // alwaysOn: true
       name: name
       siteConfig: {
         appSettings: [
           {
             name: 'DOCKER_REGISTRY_SERVER_URL'
-            value: 'https://almancontainerregistry.azurecr.io' 
+            value: concat('https://', acrName, '.azurecr.io') // 'https://almancontainerregistry.azurecr.io' 
           }
           {
             name: 'DOCKER_REGISTRY_SERVER_USERNAME'
@@ -163,18 +159,18 @@ module appServiceContainer {
             value: 'false'
           }
         ]
-        linuxFxVersion: 'DOCKER|almancontainerregistry.azurecr.io/lfa:latest' // concat('DOCKER|', acrName, '.azurecr.io/', dockerImageAndTag)
-        appCommandLine: ''
-        alwaysOn: false
+        linuxFxVersion: concat('DOCKER|', acrName, '.azurecr.io/', dockerImageAndTag)
+        // appCommandLine: ''
+        // alwaysOn: 'false' // these are also not working
       }
       serverFarmId: resourceId(farm)
-      hostingEnvironment: ''
-      clientAffinitiyEnabled: false
+      // hostingEnvironment: ''
+      // clientAffinitiyEnabled: 'false' // these are also not working
     }
     // there are other props but would like to see if they are default
   }
 
-  resource azrm 'web/serverFarms@2018-02-01' farm {
+  resource azrm 'web/serverFarms@2018-11-01' farm { // 2018-02-01 was not working, so trying this...
     name: name
     location: location
     sku: {
@@ -187,7 +183,7 @@ module appServiceContainer {
       workerSize: '0'
       workerSizeId: '0'
       numberOfWorkers: '1'
-      reserved: true
+      reserved: 'true' // true does not get passed through, but "true" does...
       hostingEnvironment: ''
     }
   }
