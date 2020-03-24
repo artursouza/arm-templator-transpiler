@@ -1,10 +1,12 @@
-module sqlServer {
-  input string name
+// these are only combined because of limitations of the prototype
+module sqlServerAndDb {
+  input string serverName
+  input string dbName
   input string location
   input string password
 
   resource azrm 'sql/servers@2019-06-01-preview' sqlServer {
-    name: name
+    name: serverName
     location: location
     kind: 'v12.0'
     properties: {
@@ -12,13 +14,55 @@ module sqlServer {
       administratorLoginPassword: password
       version: '12.0'
     }
+  }
+
+  resource azrm 'sql/servers/databases@2019-06-01-preview' sqlDb {
+    name: concat(serverName, '/', dbName) // child resources must have parent as first segment
+    location: location
+    sku: {
+      name: 'Basic'
+      tier: 'Basic'
+      capacity: 5
+    }
+    kind: 'v12.0,user'
+    properties: {
+      collation: 'SQL_Latin1_General_CP1_CI_AS'
+      maxSizeBytes: 2147483648
+      catalogCollation: 'SQL_Latin1_General_CP1_CI_AS'
+      zoneRedundant: false
+      readScale: 'Disabled'
+      readReplicaCount: 0
+      storageAccountType: 'GRS'
+    }
+    // need to set manual dependsOn since there is no explicit reference
+    dependsOn: resourceId(sqlServer)
   } 
 }
 
+/*
 module sqlDb {
-  input string name
-  input string location
+  resource azrm 'sql/servers/databases@2019-06-01-preview' sqlDb {
+    name: concat(sqlServerName, '/', name)
+    location: location
+    sku: {
+      name: 'Basic'
+      tier: 'Basic'
+      capacity: 5
+    }
+    kind: 'v12.0,user'
+    properties: {
+      collation: 'SQL_Latin1_General_CP1_CI_AS'
+      maxSizeBytes: 2147483648
+      catalogCollation: 'SQL_Latin1_General_CP1_CI_AS'
+      zoneRedundant: false
+      readScale: 'Disabled'
+      readReplicaCount: 0
+      storageAccountType: 'GRS'
+    }
+    // need to set manual dependsOn since there is no explicit reference
+  }
 }
+*/
 
 /*
 module firewallRule {
@@ -27,7 +71,8 @@ module firewallRule {
 */
 
 // Microsoft.Web/sites
-// /config, /deployments, /hostNameBindings * 4 
+// /config, /deployments, /hostNameBindings * 4\
+// 3/24 - did config as a chile resource 
 module appService {
   input string name
   input string location
@@ -126,6 +171,7 @@ module appService {
 }
 
 // need to create site and farm together because no other way to get resId
+// 3/24 - I don't think I need /deployments since i'm deploying a container
 module appServiceContainer {
   input string name
   input string location
@@ -170,7 +216,7 @@ module appServiceContainer {
     // there are other props but would like to see if they are default
   }
 
-  resource azrm 'web/serverFarms@2018-11-01' farm { // 2018-02-01 was not working, so trying this...
+  resource azrm 'web/serverFarms@2018-11-01' farm { // 2018-02-01 was not working, so trying this..., not sure if this was an actual issue...
     name: name
     location: location
     sku: {

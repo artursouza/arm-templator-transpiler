@@ -6,7 +6,7 @@
     {
       "apiVersion": "2018-11-01",
       "type": "Microsoft.web/serverFarms",
-      "name": "lawrencefarmsantiques3",
+      "name": "myWebsite",
       "location": "eastus2",
       "sku": {
         "name": "B1",
@@ -14,7 +14,7 @@
       },
       "kind": "linux",
       "properties": {
-        "name": "lawrencefarmsantiques3",
+        "name": "myWebsite",
         "workerSize": "0",
         "workerSizeId": "0",
         "numberOfWorkers": "1",
@@ -25,35 +25,70 @@
     {
       "apiVersion": "2018-11-01",
       "type": "Microsoft.web/sites",
-      "name": "lawrencefarmsantiques3",
+      "name": "myWebsite",
       "location": "eastus2",
       "properties": {
-        "name": "lawrencefarmsantiques3",
+        "name": "myWebsite",
         "siteConfig": {
           "appSettings": [
             {
               "name": "DOCKER_REGISTRY_SERVER_URL",
-              "value": "[concat('https://', 'almanContainerRegistry', '.azurecr.io')]"
+              "value": "[concat('https://', 'myPreexistingACR', '.azurecr.io')]"
             },
             {
               "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-              "value": "almanContainerRegistry"
+              "value": "myDockerUsername"
             },
             {
               "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-              "value": "JU+Z30g2SaIgokzlGAWVcFPyUQiGQV41"
+              "value": "my-docker-password"
             },
             {
               "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
               "value": "false"
             }
           ],
-          "linuxFxVersion": "[concat('DOCKER|', 'almanContainerRegistry', '.azurecr.io/', 'lfa:latest')]"
+          "linuxFxVersion": "[concat('DOCKER|', 'myPreexistingACR', '.azurecr.io/', 'lfa:latest')]"
         },
-        "serverFarmId": "[resourceId('Microsoft.web/serverFarms', 'lawrencefarmsantiques3')]"
+        "serverFarmId": "[resourceId('Microsoft.web/serverFarms', 'myWebsite')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.web/serverFarms', 'lawrencefarmsantiques3')]"
+        "[resourceId('Microsoft.web/serverFarms', 'myWebsite')]"
+      ]
+    },
+    {
+      "apiVersion": "2019-06-01-preview",
+      "type": "Microsoft.sql/servers",
+      "name": "mySqlServer",
+      "location": "eastus2",
+      "kind": "v12.0",
+      "properties": {
+        "administratorLogin": "sonofdiesel",
+        "administratorLoginPassword": "myPassword",
+        "version": "12.0"
+      }
+    },
+    {
+      "apiVersion": "2019-06-01-preview",
+      "type": "Microsoft.sql/servers/databases",
+      "name": "[concat('mySqlServer', '/', 'db')]",
+      "location": "eastus2",
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic",
+        "capacity": 5
+      },
+      "kind": "v12.0,user",
+      "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "maxSizeBytes": 2147483648,
+        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "readScale": "Disabled",
+        "readReplicaCount": 0,
+        "storageAccountType": "GRS"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.sql/servers', 'mySqlServer')]"
       ]
     }
   ],

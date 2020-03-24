@@ -1,32 +1,31 @@
-// input string namePrefix
-variable location 'eastus2'
-// input string size
+variable location = 'eastus2'
+
+variable sqlServerName = 'mySqlServer'
+variable sqlServerPassword = 'myPassword'
+
+variable appServiceName = 'myWebsite'
+variable azContainerRegistryName = 'myPreexistingACR'
+variable dockerUsername = 'myDockerUsername'
+variable dockerPassword = 'my-docker-password'
+variable imageNameAndTag = 'myimage:latest'
+// input string size (e.g. small, med, large)
 
 // includes web/serverFarms
 resource mod './modules.arm@appServiceContainer' appService { // need .arm in the file
-    name: 'lawrencefarmsantiques3'
+    name: appServiceName
     location: location
-    // serverFarmId: resourceId('Microsoft.Sql/Server', 'lfa2-db-server') --> would like to do something like this to separate farm from site
-    acrName: 'almanContainerRegistry'
-    dockerUsername: 'almanContainerRegistry'
-    dockerPassword: 'JU+Z30g2SaIgokzlGAWVcFPyUQiGQV41'
+    
+    acrName: azContainerRegistryName
+    dockerUsername: dockerUsername
+    dockerPassword: dockerPassword
     dockerImageAndTag: 'lfa:latest'
-
-    // should sku be here? how do I adjust sku and then also adjust skucode!?
 }
 
-/*
-resource mod './modules.arm@sqlServer' sqlServer {
-    name: 'lfa2-db-server'
+resource mod './modules.arm@sqlServerAndDb' sqlServerAndDb {
     location: location
-    password: 'P@ssw0rd12345'
+    
+    serverName: sqlServerName
+    password: sqlServerPassword
+    
+    dbName: 'db'
 }
-*/
-
-
-/*
-resource mod './modules@sqlDb' sqlDb {
-    name: 'lfa2-db'
-    location: location
-}
-*/
