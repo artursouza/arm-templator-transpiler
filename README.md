@@ -1,4 +1,4 @@
-# arm-templator-transpiler
+# arm-templator-transpiler (prototype)
 
 ## Testing
 Run the following to watch a .arm file and create a same-named .json whenever there are changes:
