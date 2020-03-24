@@ -1,31 +1,19 @@
 variable location = 'eastus2'
-
-variable sqlServerName = 'mySqlServer'
-variable sqlServerPassword = 'myPassword'
-
-variable appServiceName = 'myWebsite'
-variable azContainerRegistryName = 'myPreexistingACR'
-variable dockerUsername = 'myDockerUsername'
-variable dockerPassword = 'my-docker-password'
-variable imageNameAndTag = 'myimage:latest'
 // input string size (e.g. small, med, large)
 
 // includes web/serverFarms
 resource mod './modules.arm@appServiceContainer' appService { // need .arm in the file
-    name: appServiceName
+    name: 'myWebsite'
     location: location
-    
-    acrName: azContainerRegistryName
-    dockerUsername: dockerUsername
-    dockerPassword: dockerPassword
-    dockerImageAndTag: 'lfa:latest'
+    acrName: 'myRegistry'
+    dockerUsername: 'myUsername'
+    dockerPassword: 'myPassword'
+    dockerImageAndTag: 'myImage:latest'
 }
 
 resource mod './modules.arm@sqlServerAndDb' sqlServerAndDb {
     location: location
-    
-    serverName: sqlServerName
-    password: sqlServerPassword
-    
+    serverName: 'mySqlServer'
+    password: 'P@ssw0rd12345'
     dbName: 'db'
 }
