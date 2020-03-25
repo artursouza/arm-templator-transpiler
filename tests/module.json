@@ -17,7 +17,8 @@
       "apiVersion": "2019-01-01",
       "type": "Microsoft.Network/mockResource",
       "name": "test1",
-      "location": "[parameters('rgLocation')]"
+      "location": "[parameters('rgLocation')]",
+      "myBool": true
     },
     {
       "apiVersion": "2019-01-01",

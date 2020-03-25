@@ -325,6 +325,11 @@ export class TemplateVisitor extends AbstractArmVisitor {
       return output;
     }
 
+    const boolText = ctx.Bool()?.text;
+    if (boolText) {
+      return boolText === 'true';
+    }
+
     const numberText = ctx.Number()?.text;
     if (numberText) {
       return parseInt(numberText);
