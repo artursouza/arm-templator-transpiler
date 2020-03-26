@@ -97,6 +97,7 @@ property
 
 propertyTail
     : '.' propertyCall propertyTail
+    | '[' Number ']' propertyTail
     | /* epsilon */
     ;
 
