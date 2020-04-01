@@ -325,6 +325,11 @@ export class TemplateVisitor extends AbstractArmVisitor {
       return output;
     }
 
+    const boolText = ctx.Bool()?.text;
+    if (boolText) {
+      return boolText === 'true';
+    }
+
     const numberText = ctx.Number()?.text;
     if (numberText) {
       return parseInt(numberText);
@@ -352,27 +357,37 @@ export class TemplateVisitor extends AbstractArmVisitor {
         const resource = this.currentState.resources[identifier.text];
 
         let propertyTail = ctx.propertyTail();
-        if (propertyTail?.propertyCall() === undefined) {
-          throw this.buildError(`Invalid resource reference`, identifier.symbol);
-        }
-
-        const properties: string[] = [];
-        while (propertyTail?.propertyCall() !== undefined) {
-          const property = propertyTail?.propertyCall()?.text as string;
-
-          properties.push(property);
-          propertyTail = propertyTail.propertyTail();
-        }
-
-        if (properties[0] === 'properties') {
-          const reference = formatFunction('reference', [toResourceIdExpression(resource, false)], false);
-          const output = `${reference}.${properties.slice(1).join('.')}`;
-          return isTopLevel ? `[${output}]` : output;
+        let reference: string;
+        if (propertyTail?.propertyCall()?.text === 'properties') {
+          reference = formatFunction('reference', [toResourceIdExpression(resource, false)], false);
+          propertyTail = propertyTail?.propertyTail();
         } else {
-          const reference = formatFunction('reference', [toResourceIdExpression(resource, false), toParamString(resource.apiVersion), toParamString('full')], false);
-          const output = `${reference}.${properties.join('.')}`;
-          return isTopLevel ? `[${output}]` : output;
+          reference = formatFunction('reference', [toResourceIdExpression(resource, false), toParamString(resource.apiVersion), toParamString('full')], false);
         }
+
+        while (propertyTail !== undefined) {
+          if (propertyTail.childCount === 0) {
+            break;
+          }
+
+          const property = propertyTail?.propertyCall()?.text as string;
+          if (property) {
+            reference += `.${property}`;
+            propertyTail = propertyTail.propertyTail();
+            continue;
+          }
+
+          const number = propertyTail?.Number()?.text as string;
+          if (number) {
+            reference += `[${number}]`;
+            propertyTail = propertyTail.propertyTail();
+            continue;
+          }
+
+          throw this.buildError(`Invalid resource reference`, propertyTail.start);
+        }
+
+        return isTopLevel ? `[${reference}]` : reference;
       }
 
       if (this.parameterNames.has(identifier.text)) {

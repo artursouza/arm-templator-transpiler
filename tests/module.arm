@@ -8,6 +8,7 @@ resource azrm 'Network/mockResource@2019-01-01' mockResource {
 resource azrm 'Network/mockResource@2019-01-01' mockResource2 {
   name: 'test1'
   location: rgLocation
+  myBool: true
 }
 
 variable myVar1 {

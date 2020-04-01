@@ -1,0 +1,62 @@
+input string assignmentScope
+input array allowedLocations
+
+variable policyName 'restrict-allowed-locations-policy'
+variable enforcementMode 'Default'
+
+// TODO figure out how to make this generate a subscription-level template
+resource azrm 'Authorization/policyDefinitions@2019-09-01' policy {
+  name: policyName
+  properties: {
+    displayName: 'Restrict allowed locations for resources'
+    policyType: 'Custom'
+    description: 'This policy restrict the locations you can specify when deploying resources. Excludes resource groups, Microsoft.AzureActiveDirectory/b2cDirectories, and resources that use the \'global\' region.'
+    metadata: {
+      category: 'General'
+    }
+    mode: 'All'
+    parameters: {
+      allowedLocations: {
+        type: 'Array'
+        metadata: {
+          displayName: 'Allowed locations'
+          description: 'The list of locations that can be specified when deploying resources.'
+          strongType: 'location'
+        }
+      }
+    }
+    policyRule: {
+      if: {
+        allOf: [
+          {
+            field: 'location'
+            notIn: '[parameters(\'allowedLocations\')]'
+          }
+          {
+            field: 'location'
+            notEquals: 'global'
+          }
+          {
+            field: 'type'
+            notEquals: 'Microsoft.AzureActiveDirectory/b2cDirectories'
+          }
+        ]
+      }
+      then: {
+        effect: 'Deny'
+      }
+    }
+  }
+}
+
+resource azrm 'Authorization/policyAssignments@2019-09-01' assignment {
+  name: concat(policyName, '-assignment')
+  properties: {
+    scope: assignmentScope
+    enforcementMode: enforcementMode
+    policyDefinitionId: resourceId(policy)
+    parameters: {
+      allowedLocations: allowedLocations
+    }
+  }
+}

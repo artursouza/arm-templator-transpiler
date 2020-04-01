@@ -56,19 +56,13 @@ propertyCall
     : Identifier
     ;
 
-Identifier
-    : NonDigit
-        (   NonDigit
-        |   Digit
-        )*
+Bool
+    : 'true'
+    | 'false'
     ;
 
 Number
     : Digit+
-    ;
-
-String
-    : '\'' StringChar* '\''
     ;
 
 type
@@ -80,11 +74,21 @@ type
     | 'array'
     ;
 
+String
+    : '\'' StringChar* '\''
+    ;
+
+Identifier
+    : NonDigit
+        (   NonDigit
+        |   Digit
+        )*
+    ;
+
 property
     : String
     | Number
-    | 'true'
-    | 'false'
+    | Bool
     | object
     | array
     | identifierCall propertyTail
@@ -93,6 +97,7 @@ property
 
 propertyTail
     : '.' propertyCall propertyTail
+    | '[' Number ']' propertyTail
     | /* epsilon */
     ;
 
