@@ -10,7 +10,7 @@ module sqlServerAndDb {
     location: location
     kind: 'v12.0'
     properties: {
-      administratorLogin: 'sonofdiesel'
+      administratorLogin: 'adminUser'
       administratorLoginPassword: password
       version: '12.0'
     }
@@ -175,14 +175,9 @@ module appServiceContainer {
           }
         ]
         linuxFxVersion: concat('DOCKER|', acrName, '.azurecr.io/', dockerImageAndTag)
-        // appCommandLine: ''
-        // alwaysOn: 'false' // these are also not working
       }
       serverFarmId: resourceId(farm)
-      // hostingEnvironment: ''
-      // clientAffinitiyEnabled: 'false' // these are also not working
     }
-    // there are other props but would like to see if they are default
   }
 
   resource azrm 'web/serverFarms@2018-11-01' farm { // 2018-02-01 was not working, so trying this..., not sure if this was an actual issue...
@@ -198,8 +193,7 @@ module appServiceContainer {
       workerSize: '0'
       workerSizeId: '0'
       numberOfWorkers: '1'
-      reserved: 'true' // true does not get passed through, but "true" does...
-      hostingEnvironment: ''
+      reserved: true // true does not get passed through, but "true" does...
     }
   }
 }

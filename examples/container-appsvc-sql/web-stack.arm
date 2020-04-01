@@ -2,7 +2,7 @@ variable location = 'eastus2'
 // input string size (e.g. small, med, large)
 
 // includes web/serverFarms
-resource mod './modules.arm@appServiceContainer' appService { // need .arm in the file
+resource mod './modules.arm@appServiceContainer' appService { // need .arm in the filepath
     name: 'myWebsite'
     location: location
     acrName: 'myRegistry'
