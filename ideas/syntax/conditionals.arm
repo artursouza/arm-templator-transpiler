@@ -1,0 +1,117 @@
+input baseNames array
+input location string
+input condition bool
+
+/* Syntax examples.
+Note, we will need to think carefully about for loops and conditionals
+as although they look 'imperative', there are certain concepts that do not
+translate well into declarative code - for example referencing conditionally-deployed resources
+or resources that have been deployed in a loop. */
+
+// for loop
+for baseName in baseNames {
+  resource azrm 'storage/storageAccounts@2015-06-15' myStorage {
+    name: concat(baseName, '-sa')
+    location: input.location
+    properties: {
+      accountType: 'Standard_LRS'
+    }
+  }
+}
+
+// in the above example, loopAccount is scoped inside the for statement, which means refering to the resource
+// outside this scope is complex. one potential solution is to allow variable assignment e.g.
+variable loopResources (for baseName in baseNames {
+  resource azrm 'storage/storageAccounts@2015-06-15' myStorage {
+    name: concat(baseName, '-sa')
+    location: input.location
+    properties: {
+      accountType: 'Standard_LRS'
+    }
+  }
+})
+
+// can now access loop variables with e.g.
+// loopResources[0].myStorage.name
+// hopefully there would be relatively few reasons to do this
+
+// string concatenation
+resource azrm 'storage/storageAccounts@2015-06-15' concatAccount {
+  name: '${baseName}-sa'
+  location: input.location
+  properties: {
+    accountType: 'Standard_LRS'
+  }
+}
+
+// conditionals - note that because we're operating inside a new scope,
+// it's tricky to refer to ifTrueAccount or ifFalseAccount outside this
+// statement.
+if (condition) {
+  resource azrm 'storage/storageAccounts@2015-06-15' ifTrueAccount {
+    name: 'iftrue'
+    location: input.location
+    properties: {
+      accountType: 'Standard_LRS'
+    }
+  }
+} else {
+  resource azrm 'storage/storageAccounts@2015-06-15' ifFalseAccount {
+    name: 'iffalse'
+    location: input.location
+    properties: {
+      accountType: 'Standard_LRS'
+    }
+  }
+}
+
+// in-line conditionals
+variable conditionalVar if condition {
+  accountType: 'Standard_LRS'
+} else if condition2 {
+  accountType: 'Standard_GRS'
+} else {
+  accountType: 'Standard_ZRS'
+}
+
+// this is also equivalent to:
+variable conditionalVar {
+  accountType: if condition 'Standard_LRS' else if condition2 'Standard_GRS' else 'Standard_ZRS'
+}
+
+// we could also allow ternery syntax e.g. the following two statements are equivalent
+variable ternaryVar condition ? 'Standard_LRS' : 'Standard_GRS'
+variable verboseVar if condition 'Standard_LRS' else 'Standard_GRS'
+
+// we could allow references to variables which are constructed in all branches of the conditional 
+// to be refered to outside the scope, but this may end up being confusing:
+if condition {
+  variable myVar true
+} else {
+  variable myVar false
+}
+
+// switch syntax (similar to if/else):
+variable conditionalVar switch myVal {
+  condition1 {
+    accountType: 'Standard_LRS'
+  }
+  condition2 {
+    accountType: 'Standard_GRS'
+  }
+  default {
+    accountType: 'Standard_ZRS'
+  }
+}
+
+// inline switch:
+variable conditionalVar {
+  accountType switch myVal {
+    condition1 'Standard_LRS'
+    condition2 'Standard_GRS'
+    default 'Standard_ZRS'
+  }
+}
+
+// print statements for debugging
+print myVar
