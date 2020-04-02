@@ -1,0 +1,60 @@
+module availabilitySets {
+  input string adAvailabilitySetName
+  input string sqlAvailabilitySetName
+  input string spWebAvailabilitySetName
+  input string spAppAvailabilitySetName
+  input string location
+
+  resource azrm 'compute/availabilitySets@2017-03-30' adAvailabilitySet {
+    name: adAvailabilitySetName
+    location: location
+    sku: {
+      name: 'Aligned'
+    }
+    properties: {
+      platformFaultDomainCount: 2
+      platformUpdateDomainCount: 5
+    }
+  }
+
+  resource azrm 'compute/availabilitySets@2017-03-30' sqlAvailabilitySet {
+    name: sqlAvailabilitySetName
+    location: location
+    sku: {
+      name: 'Aligned'
+    }
+    properties: {
+      platformFaultDomainCount: 3
+      platformUpdateDomainCount: 3
+    }
+  }
+
+  resource azrm 'compute/availabilitySets@2017-03-30' spWebAvailabilitySet {
+    name: spWebAvailabilitySetName
+    location: location
+    sku: {
+      name: 'Aligned'
+    }
+    properties: {
+      platformFaultDomainCount: 2
+      platformUpdateDomainCount: 5
+    }
+  }
+
+  resource azrm 'compute/availabilitySets@2017-03-30' spAppAvailabilitySet {
+    name: spAppAvailabilitySetName
+    location: location
+    sku: {
+      name: 'Aligned'
+    }
+    properties: {
+      platformFaultDomainCount: 2
+      platformUpdateDomainCount: 5
+    }
+  }
+
+  output adAvailabilitySetId: resourceId(adAvailabilitySet)
+  output sqlAvailabilitySetId: resourceId(sqlAvailabilitySet)
+  output spWebAvailabilitySetId: resourceId(spWebAvailabilitySet)
+  output spAppAvailabilitySetId: resourceId(spAppAvailabilitySet)
+}

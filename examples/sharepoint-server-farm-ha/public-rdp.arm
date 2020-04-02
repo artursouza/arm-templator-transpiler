@@ -1,0 +1,51 @@
+module publicRdp {
+  input string location
+  input string rdpIPAddressName
+  input string rdpLBName
+  input string rdpLBFE
+  input string adLBBE
+  input string RDPNAT
+
+  resource azrm 'network/publicIPAddresses@2015-06-15' publicIp {
+    name: rdpIPAddressName
+    location: location
+    properties: {
+      publicIPAllocationMethod: 'Dynamic'
+    }
+  }
+
+  resource azrm 'network/loadBalancers@2015-06-15' loadBal {
+    name: rdpLBName
+    location: location
+    properties: {
+      frontendIPConfigurations: [{
+        name: rdpLBFE
+        properties: {
+          publicIPAddress: {
+            id: resourceId(publicIp)
+          }
+        }
+      }]
+      backendAddressPools: [{
+        name: adLBBE
+      }]
+      inboundNatRules: [{
+        name: RDPNAT
+        properties: {
+          frontendIPConfiguration: {
+            // todo 'this' for referring to own resource body
+            // id: concat(resourceId(this), '/frontendIPConfiguration/', rdpLBFE)
+            id: concat('<DUMMY_FIXME>', '/frontendIPConfiguration/', rdpLBFE)
+          }
+          protocol: 'Tcp'
+          frontendPort: 3389
+          backendPort: 3389
+          enableFloatingIP: false
+        }
+      }]
+    }
+  }
+
+  output resourceId: resourceId(publicIp)
+  output ipAddress: publicIp.properties.ipAddress
+}

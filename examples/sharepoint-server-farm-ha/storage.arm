@@ -1,0 +1,44 @@
+module accounts {
+  input string storageAccountNamePrefix
+  input string location
+  input string storageAccountType
+
+  resource mod 'singleAccount' account1 {
+    name: concat(storageAccountNamePrefix, 1)
+    location: location
+    skuName: storageAccountType
+  }
+
+  resource mod 'singleAccount' account2 {
+    name: concat(storageAccountNamePrefix, 2)
+    location: location
+    skuName: storageAccountType
+  }
+
+  resource mod 'singleAccount' account3 {
+    name: concat(storageAccountNamePrefix, 3)
+    location: location
+    skuName: storageAccountType
+  }
+
+  resource mod 'singleAccount' account4 {
+    name: concat(storageAccountNamePrefix, 4)
+    location: location
+    skuName: storageAccountType
+  }
+}
+
+module singleAccount {
+  input string location
+  input string skuName
+  input string name
+
+  resource azrm 'storage/storageAccounts@2016-01-01' account {
+    name: name
+    location: location
+    sku: {
+      name: skuName
+    }
+    kind: 'Storage'
+  }
+}

@@ -1,0 +1,19 @@
+module vnetNew {
+  input string location
+  input string virtualNetworkName
+  input string virtualNetworkAddressRange
+  input array subnets
+
+  resource azrm 'network/virtualNetworks@2015-06-15' vnet {
+    name: virtualNetworkName
+    location: location
+    properties: {
+      addressSpace: {
+        addressPrefixes: [
+          virtualNetworkAddressRange
+        ]
+      }
+      subnets: subnets
+    }
+  }
+}

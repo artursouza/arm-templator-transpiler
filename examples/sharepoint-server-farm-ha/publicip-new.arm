@@ -1,0 +1,21 @@
+module publicIpNew {
+  input string location
+  input string publicIPAddressName
+  input string publicIPAddressType
+  input string dnsPrefix
+
+  resource azrm 'network/publicIPAddresses@2015-06-15' publicIp {
+    name: publicIPAddressName
+    location: location
+    properties: {
+      publicIPAllocationMethod: publicIPAddressType
+      dnsSettings: {
+        domainNameLabel: dnsPrefix
+      }
+    }
+  }
+
+  output resourceId: resourceId(publicIp)
+  output fqdn: publicIp.properties.dnsSettings.fqdn
+  output ipAddress: publicIp.properties.ipAddress
+}
