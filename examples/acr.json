@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "resources": [
+    {
+      "apiVersion": "2019-05-01",
+      "type": "Microsoft.ContainerRegistry/registries",
+      "name": "feldspar",
+      "location": "eastus2",
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic"
+      },
+      "properties": {
+        "adminUserEnabled": true
+      }
+    }
+  ],
+  "outputs": {
+    "acrLoginServer": {
+      "type": "object",
+      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', 'feldspar'))]"
+    }
+  }
+}

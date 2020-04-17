@@ -1,0 +1,15 @@
+variable location: 'eastus2'
+
+resource azrm 'ContainerRegistry/registries@2019-05-01' acr {
+    name: 'feldspar'
+    location: location
+    sku: {
+        name: 'Basic'
+        tier: 'Basic'
+    }
+    properties: {
+        adminUserEnabled: true
+    }
+}
+
+output acrLoginServer: acr.properties

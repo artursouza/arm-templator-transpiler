@@ -1,19 +1,22 @@
+input securestring acrPassword
+
 variable location = 'eastus2'
 // input string size (e.g. small, med, large)
 
 // includes web/serverFarms
 resource mod './modules.arm@appServiceContainer' appService { // need .arm in the filepath
-    name: 'myWebsite'
+    name: 'lfa2'
     location: location
-    acrName: 'myRegistry'
-    dockerUsername: 'myUsername'
-    dockerPassword: 'myPassword'
-    dockerImageAndTag: 'myImage:latest'
+    acrName: 'feldspar'
+    dockerUsername: 'feldspar'
+    dockerPassword: acrPassword
+    dockerImageAndTag: 'lfa/frontend:latest' // {repository}:{tag} format
+    // need to declare dependency to acr here...
 }
 
 resource mod './modules.arm@sqlServerAndDb' sqlServerAndDb {
     location: location
-    serverName: 'mySqlServer'
+    serverName: 'lfa2'
     password: 'P@ssw0rd12345'
     dbName: 'db'
 }

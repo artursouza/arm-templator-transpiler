@@ -1,16 +1,20 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {},
+  "parameters": {
+    "acrPassword": {
+      "type": "securestring"
+    }
+  },
   "resources": [
     {
       "apiVersion": "2019-06-01-preview",
       "type": "Microsoft.sql/servers",
-      "name": "mySqlServer",
+      "name": "lfa2",
       "location": "eastus2",
       "kind": "v12.0",
       "properties": {
-        "administratorLogin": "sonofdiesel",
+        "administratorLogin": "adminUser",
         "administratorLoginPassword": "P@ssw0rd12345",
         "version": "12.0"
       }
@@ -18,7 +22,7 @@
     {
       "apiVersion": "2019-06-01-preview",
       "type": "Microsoft.sql/servers/databases",
-      "name": "[concat('mySqlServer', '/', 'db')]",
+      "name": "[concat('lfa2', '/', 'db')]",
       "location": "eastus2",
       "sku": {
         "name": "Basic",
@@ -30,18 +34,19 @@
         "collation": "SQL_Latin1_General_CP1_CI_AS",
         "maxSizeBytes": 2147483648,
         "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "zoneRedundant": false,
         "readScale": "Disabled",
         "readReplicaCount": 0,
         "storageAccountType": "GRS"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.sql/servers', 'mySqlServer')]"
+        "[resourceId('Microsoft.sql/servers', 'lfa2')]"
       ]
     },
     {
       "apiVersion": "2018-11-01",
       "type": "Microsoft.web/serverFarms",
-      "name": "myWebsite",
+      "name": "lfa2",
       "location": "eastus2",
       "sku": {
         "name": "B1",
@@ -49,44 +54,45 @@
       },
       "kind": "linux",
       "properties": {
-        "name": "myWebsite",
+        "name": "lfa2",
         "workerSize": "0",
         "workerSizeId": "0",
-        "numberOfWorkers": "1"
+        "numberOfWorkers": "1",
+        "reserved": true
       }
     },
     {
       "apiVersion": "2018-11-01",
       "type": "Microsoft.web/sites",
-      "name": "myWebsite",
+      "name": "lfa2",
       "location": "eastus2",
       "properties": {
-        "name": "myWebsite",
+        "name": "lfa2",
         "siteConfig": {
           "appSettings": [
             {
               "name": "DOCKER_REGISTRY_SERVER_URL",
-              "value": "[concat('https://', 'myRegistry', '.azurecr.io')]"
+              "value": "[concat('https://', 'feldspar', '.azurecr.io')]"
             },
             {
               "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-              "value": "myUsername"
+              "value": "feldspar"
             },
             {
               "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-              "value": "myPassword"
+              "value": "[parameters('acrPassword')]"
             },
             {
               "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
               "value": "false"
             }
           ],
-          "linuxFxVersion": "[concat('DOCKER|', 'myRegistry', '.azurecr.io/', 'myImage:latest')]"
+          "linuxFxVersion": "[concat('DOCKER|', 'feldspar', '.azurecr.io/', 'lfa/frontend:latest')]"
         },
-        "serverFarmId": "[resourceId('Microsoft.web/serverFarms', 'myWebsite')]"
+        "serverFarmId": "[resourceId('Microsoft.web/serverFarms', 'lfa2')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.web/serverFarms', 'myWebsite')]"
+        "[resourceId('Microsoft.web/serverFarms', 'lfa2')]"
       ]
     }
   ],
