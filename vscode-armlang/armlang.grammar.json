@@ -25,7 +25,7 @@
 				"match": "\\b(resource|module|variable|export|input|output|for|in|if|else)\\b"
 			}, {
 				"name": "keyword.bundle.armlang",
-				"match": "\\b(azrm|mod)\\b"
+				"match": "\\b(azrm|mod|oam)\\b"
 			}, {
 				"name": "keyword.type.armlang",
 				"match": "\\b(string|securestring|int|bool|object|array)\\b"

@@ -219,6 +219,9 @@ export class TemplateVisitor extends AbstractArmVisitor {
       case 'azrm':
         this.visitAzrmResource(ctx);
         break;
+      case 'oam':
+        this.visitAzrmResource(ctx);
+        break;
       case 'mod':
         this.visitModuleResource(ctx);
         break;

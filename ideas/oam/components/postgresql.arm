@@ -1,0 +1,79 @@
+// Database username
+input string dbuser
+// Database password
+input securestring dbpassword
+// Database name
+input string database
+
+variable oamCoreApiVersion 'core.oam.dev/v1alpha2'
+
+resource oam 'tracker-postgres-db' component {
+  apiVersion: oamCoreApiVersion
+  metadata: {
+    name: 'tracker-postgres-db'
+  }
+  spec : {
+    workload: {
+      apiVersion: oamCoreApiVersion
+      kind: 'ContainerizedWorkload'
+      metadata: {
+        name: 'db-workload'
+      }
+      spec: {
+        osType: 'linux'
+        arch: 'amd64'
+        containers: [
+          {
+            name: 'postgres'
+            image: 'docker.io/postgres:9.6.17-alpine'
+            env: [
+              {
+                name: 'POSTGRES_USER'
+                value: '[parameters(\'dbuser\')]'
+              }
+              {
+                name: 'POSTGRES_PASSWORD'
+                value: '[parameters(\'dbpassword\')]'
+              }
+              {
+                name: 'POSTGRES_DB'
+                value: '[parameters(\'database\')]'
+              }
+            ]
+            ports: [
+              {
+                name: 'postgres'
+                containerPort: 5432
+                protocol: 'TCP'
+              }
+            ]
+            readinessProbe: {
+              exec: {
+                command: [
+                  'echo'
+                ]
+              }
+              failureThreshold: 6
+              initialDelaySeconds: 5
+              periodSeconds: 10
+              successThreshold: 1
+              timeoutSeconds: 5
+            }
+            livenessProbe: {
+              exec: {
+                command: [
+                  'echo'
+                ]
+              }
+              failureThreshold: 6
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              successThreshold: 1
+              timeoutSeconds: 5
+            }
+          }
+        ]
+      }
+    }
+  }
+}
